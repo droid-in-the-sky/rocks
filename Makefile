@@ -1,37 +1,16 @@
-#CFLAGS = -DCEU_RUNTESTS -DCEU_DEBUG #-DSIMUL #-DCEU_DEBUG_TRAILS
-CFLAGS = -DCEU_DEBUG# -DCEU_DEBUG_TRAILS
-#CFLAGS = -DCEU_SIMULATION
-#CFLAGS = -DDEBUG_FPS
+###############################################################################
+# EDIT
+###############################################################################
 
-all:
-	ceu --cpp-args "-I . $(CFLAGS)" main.ceu
-	gcc -g -Os $(CFLAGS) main.c -lSDL2 -lSDL2_image -lSDL2_mixer \
-		-lSDL2_ttf -lSDL2_gfx -lm \
-		-o rocks.exe
+SDL_DIR ?= $(error set path to "<ceu-sdl>" repository)
+CEU_DIR ?= $(error set path to "<ceu>" repository)
 
-sim:
-	ceu --timemachine --cpp-args "-I . $(CFLAGS)" sim.ceu
-	gcc -g -Os -DCEU_TIMEMACHINE $(CFLAGS) main.c -lSDL2 -lSDL2_image \
-		-lSDL2_mixer -lSDL2_ttf -lSDL2_gfx -lm \
-		-o rocks.exe
+###############################################################################
+# DO NOT EDIT
+###############################################################################
 
-test:
-	ceu --cpp-args "-I . $(CFLAGS) -DSIMULATION_TEST" main.ceu
-	gcc -g -Os -DSIMULATION_TEST $(CFLAGS) main.c -lSDL2 -lSDL2_image \
-		-lSDL2_mixer -lSDL2_ttf -lSDL2_gfx -lm \
-		-o rocks.exe
+SRC = src/main.ceu
+ARCH_DIR_ABS ?= $(PWD)/$(SDL_DIR)/arch
 
-FILES = controllers.ceu fnts.ceu main.ceu objs.ceu points.ceu snds.ceu texs.ceu
-
-count:
-	wc $(FILES)
-	cat $(FILES) | grep "^ *//" | wc
-	cat $(FILES) | grep "^ */\*" | wc
-	cat $(FILES) | grep "^ *\*" | wc
-	#cat controllers.ceu fnts.ceu main.ceu objs.ceu points.ceu snds.ceu texs.ceu | grep "^$" | wc
-
-clean:
-	find . -name "*.exe"  | xargs rm -f
-	find . -name "_ceu_*" | xargs rm -f
-
-.PHONY: all clean
+include $(SDL_DIR)/Makefile
+include $(CEU_DIR)/Makefile
