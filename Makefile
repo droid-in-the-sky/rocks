@@ -10,7 +10,9 @@ CEU_DIR ?= $(error set path to "<ceu>" repository)
 ###############################################################################
 
 SRC = src/main.ceu
-ARCH_DIR_ABS ?= $(PWD)/$(SDL_DIR)/arch
+ARCH_DIR ?= $(SDL_DIR)/arch
+
+_all: all
 
 include $(SDL_DIR)/Makefile
 include $(CEU_DIR)/Makefile
