@@ -2,8 +2,7 @@
 # EDIT
 ###############################################################################
 
-SDL_DIR = /data/ceu/ceu-sdl
-#SDL_DIR ?= $(error set absolute path to "<ceu-sdl>" repository)
+SDL_DIR ?= $(error set absolute path to "<ceu-sdl>" repository)
 
 ###############################################################################
 # DO NOT EDIT
