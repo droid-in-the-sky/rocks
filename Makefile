@@ -2,14 +2,14 @@
 # EDIT
 ###############################################################################
 
-SDL_DIR ?= $(error set absolute path to "<ceu-sdl>" repository)
+SDL_DIR = /data/ceu/ceu-sdl
+#SDL_DIR ?= $(error set absolute path to "<ceu-sdl>" repository)
 
 ###############################################################################
 # DO NOT EDIT
 ###############################################################################
 
 SRC = src/main.ceu
-ARCH_DIR ?= $(SDL_DIR)/arch
 
 _all: all
 
