@@ -12,7 +12,7 @@ native do
 end
 
 #ifdef CEU_TIMEMACHINE
-global do
+pre do
 #endif
 
 /*

@@ -4,6 +4,10 @@
 #define SIMULATION_TEST     // deterministic input, 1h
 */
 
+#ifdef CEU_TIMEMACHINE
+pre do
+#endif
+
 /*
  * Include the standard declarations & definitions for the SDL binding for Céu:
  * (Ignore them for now.)
@@ -215,8 +219,12 @@ end
 /* TODO: read "NObject" this as a synonym for "Object" */
 interface NObject with
     interface Object;
-    var _char[0] nope;
+    //var _char[0] nope;
 end
+
+#ifdef CEU_TIMEMACHINE
+end
+#endif
 
 // Implementations for all game objects: ships, shots, meteors, etc.
 #include "objs.ceu"    // (Ignore it for now.)
@@ -225,7 +233,7 @@ end
  * GAME EXECUTION STARTS HERE
  */
 
-/*
+/* TODO: changed all
  * Create the game window and renderer.
  * Both allocations relies on Céu's finalization mechanism to safely relese 
  * them.
@@ -240,45 +248,24 @@ end
  */
 
 native do
-    /*
-     * We have a unique global renderer for the game.
-     */
     SDL_Renderer* REN = NULL;
     int REN_W, REN_H;
 end
 
 #ifdef CEU_TIMEMACHINE
-global do   // ignore all code inside "CEU_TIMEMACHINE" ifdef's
+pre do   // ignore all code inside "CEU_TIMEMACHINE" ifdef's
 #endif
 
-/*
+/* TODO: changed all
  * Create (and destroy) the game window.
  * The "finalize" clause ensures that the window is properly destroyed on 
  * program termination.
  */
 
-var _SDL_Window&? win;
-    finalize
-        win = &_SDL_CreateWindow("Rocks!", _SDL_WINDOWPOS_CENTERED,
-                                           _SDL_WINDOWPOS_CENTERED,
-                                           1280, 800,
-                                           _SDL_WINDOW_SHOWN);
-    with
-        _SDL_DestroyWindow(&&win!);
-    end
-_SDL_GetWindowSize(&&win!, &&_REN_W, &&_REN_H);
-
-/*
- * Create (and destroy) the game renderer.
- * The "finalize" clause ensures that the renderer is properly destroyed on 
- * program termination.
- */
-
-finalize
-    _REN = _SDL_CreateRenderer(&&win!, -1, 0);
-with
-    _SDL_DestroyRenderer(_REN);
-end
+var SDL sdl = SDL.build(_SDL_INIT_EVERYTHING, 1280,800, "Rocks!");
+_REN   = &&sdl.ren;
+_REN_W = sdl.w;
+_REN_H = sdl.h;
 
 #ifdef CEU_TIMEMACHINE
 end         // ignore all code inside "CEU_TIMEMACHINE" ifdef's
@@ -522,7 +509,7 @@ with
 
             var Ship ship1 with
                 this.id     = _OBJ_SHIP1;
-                this.tex    = &_UNSAFE_POINTER_TO_REFERENCE(_TEX_SHIP1);
+                this.tex    = &_UNSAFE_POINTER_TO_ALIAS(_TEX_SHIP1);
                 this.dir    = 1;            // positive increase (on X-axis)
                 this.rect   = SDL_Rect(dim,_REN_H/2,0,0); // w/h set inside
                 this.controller = &controller1;
@@ -536,7 +523,7 @@ with
 
             var Ship ship2 with
                 this.id     = _OBJ_SHIP2;
-                this.tex    = &_UNSAFE_POINTER_TO_REFERENCE(_TEX_SHIP2);
+                this.tex    = &_UNSAFE_POINTER_TO_ALIAS(_TEX_SHIP2);
                 this.dir    = -1;            // positive increase (on X-axis)
                 this.rect   = SDL_Rect(_REN_W-dim,_REN_H/2,0,0); // w/h set inside
                 this.controller = &controller2;
@@ -758,7 +745,7 @@ with
                                                                  oo2:rect.y,
                                                                  0,0);
                                             this.id   = _OBJ_BONUS_LIFE;
-                                            this.tex  = &_UNSAFE_POINTER_TO_REFERENCE(_TEX_BONUS_LIFE);
+                                            this.tex  = &_UNSAFE_POINTER_TO_ALIAS(_TEX_BONUS_LIFE);
                                             this.dir  = -dir;
                                         end;
                                     else/if pct < 55 then
@@ -767,7 +754,7 @@ with
                                                                  oo2:rect.y,
                                                                  0,0);
                                             this.id   = _OBJ_BONUS_HITS;
-                                            this.tex  = &_UNSAFE_POINTER_TO_REFERENCE(_TEX_BONUS_HITS);
+                                            this.tex  = &_UNSAFE_POINTER_TO_ALIAS(_TEX_BONUS_HITS);
                                             this.dir  = -dir;
                                         end;
                                     else/if pct < 70 then
@@ -776,7 +763,7 @@ with
                                                                  oo2:rect.y,
                                                                  0,0);
                                             this.id     = _OBJ_BONUS_SHIELD;
-                                            this.tex    = &_UNSAFE_POINTER_TO_REFERENCE(_TEX_BONUS_SHIELD);
+                                            this.tex    = &_UNSAFE_POINTER_TO_ALIAS(_TEX_BONUS_SHIELD);
                                             this.dir    = -dir;
                                         end;
                                     else/if pct < 85 then
@@ -785,7 +772,7 @@ with
                                                                  oo2:rect.y,
                                                                  0,0);
                                             this.id   = _OBJ_BONUS_FIRE;
-                                            this.tex  = &_UNSAFE_POINTER_TO_REFERENCE(_TEX_BONUS_FIRE);
+                                            this.tex  = &_UNSAFE_POINTER_TO_ALIAS(_TEX_BONUS_FIRE);
                                             this.dir  = -dir;
                                         end;
                                     else

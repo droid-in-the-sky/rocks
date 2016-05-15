@@ -18,7 +18,7 @@ native do
 end
 
 #ifdef CEU_TIMEMACHINE
-global do
+pre do
 #endif
 
 /*
@@ -95,7 +95,7 @@ with
 end
 
 loop i in 3 do
-    var _char[5] str;
+    var _char[5] str = [];
     _sprintf(&&str, "%d", i+1);
     finalize
         _TEX_BOMB[i] = _SDL_text2texture(_REN, _FONT_SMALL, &&str,
@@ -114,7 +114,7 @@ loop i in 3 do
 end
 
 loop i in 10 do
-    var _char[5] str;
+    var _char[5] str = [];
     _sprintf(&&str, "%d", i);
     finalize
         _TEX_NUM[i] = _SDL_text2texture(_REN, _FONT_BIG, &&str,
