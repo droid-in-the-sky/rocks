@@ -138,6 +138,10 @@ native do
 end
 native @nohold _SDL_text2texture();
 
+#ifdef CEU_TIMEMACHINE
+end
+#endif
+
 /*
  * "Points" interface.
  * For each player we show its corresponding number of points, which are 
@@ -219,12 +223,8 @@ end
 /* TODO: read "NObject" this as a synonym for "Object" */
 interface NObject with
     interface Object;
-    //var _char[0] nope;
+    var _char[0] nope;
 end
-
-#ifdef CEU_TIMEMACHINE
-end
-#endif
 
 // Implementations for all game objects: ships, shots, meteors, etc.
 #include "objs.ceu"    // (Ignore it for now.)

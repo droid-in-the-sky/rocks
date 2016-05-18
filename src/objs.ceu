@@ -48,6 +48,7 @@ end
  */
 class Fire with
     interface NObject;
+    var _char[0] nope = [];
     var int dir;        // fire orientation (left=1/right=-1)
     var int vy;         // inherit "vy" from the shooting ship
     var int w;          // fire width (may increase with "F" bonus)
@@ -516,6 +517,7 @@ end
 
 class RockBig with
     interface NObject;
+    var _char[0] nope = [];
     var int id = _OBJ_ROCK;
     var bool can_hit = false;  // can hit only after a while
 do
@@ -572,6 +574,7 @@ end
 
 class RockSmall with
     interface NObject;
+    var _char[0] nope = [];
     var int id = _OBJ_rock;
     var int dir = 0;
     var bool can_hit = true; // can hit since the beginning
@@ -619,6 +622,7 @@ end
 
 class Bonus with
     interface NObject;
+    var _char[0] nope = [];
     var int id  = 0;
     var int dir = 0;
     var _SDL_Texture& tex;
@@ -663,6 +667,7 @@ end
 // not used anymore
 class Missile with
     interface NObject;
+    var _char[0] nope = [];
     var int id = 0;
     var Object&& obj_to_follow = null;
 do
@@ -716,6 +721,7 @@ end
 
 class Bomb with
     interface NObject;
+    var _char[0] nope = [];
     var int id = _OBJ_BOMB;
     var int dir = 0;
     var bool can_hit = true; // can hit since the beginning
