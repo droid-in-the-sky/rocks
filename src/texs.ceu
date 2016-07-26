@@ -1,137 +1,35 @@
-/*
- * Global references to the images so that they can be used from anywhere in 
- * the game.
- */
-native do
-    SDL_Texture* TEX_BG         = NULL;     // game background
-    SDL_Texture* TEX_TAP        = NULL;     // "= TAP TO START ="
-    SDL_Texture* TEX_SHIP1      = NULL;     // ship in the left
-    SDL_Texture* TEX_SHIP2      = NULL;     // ship in the right
-    SDL_Texture* TEX_ROCK       = NULL;     // big meteor
-    SDL_Texture* TEX_rock       = NULL;     // small meteor
-    SDL_Texture* TEX_BONUS_LIFE = NULL;     // life bonus (+1)
-    SDL_Texture* TEX_BONUS_SHIELD = NULL;   // shield bonus (S)
-    SDL_Texture* TEX_BONUS_HITS = NULL;     // hit-points bonus (H)
-    SDL_Texture* TEX_BONUS_FIRE = NULL;     // space fire bonus (F)
-    SDL_Texture* TEX_BOMB[3];               // 3-2-1 bomb
-    SDL_Texture* TEX_NUM[10];
-end
-
-#ifdef CEU_TIMEMACHINE
-pre do
-#endif
-
-/*
- * Load (and destroy) each image used in the program.
- * The "finalize" clause ensures that each image is properly destroyed on 
- * program termination.
- */
-
-var SDL_Color white = SDL_COLOR_WHITE;
-
-finalize
-   _TEX_BG = _IMG_LoadTexture(_REN, "imgs/bg.png");
-with
-   _SDL_DestroyTexture(_TEX_BG);
-end
-
-finalize
-   _TEX_TAP = _SDL_text2texture(_REN, _FONT_BIG, "= TAP TO START =",
-                                (_SDL_Color&&)&&white, null);
-with
-   _SDL_DestroyTexture(_TEX_TAP);
-end
-
-finalize
-   _TEX_SHIP1 = _IMG_LoadTexture(_REN, "imgs/ship_1.gif");
-with
-   _SDL_DestroyTexture(_TEX_SHIP1);
-end
-
-finalize
-   _TEX_SHIP2 = _IMG_LoadTexture(_REN, "imgs/ship_2.gif");
-with
-   _SDL_DestroyTexture(_TEX_SHIP2);
-end
-
-finalize
-   _TEX_ROCK = _IMG_LoadTexture(_REN, "imgs/rock_big.gif");
-with
-   _SDL_DestroyTexture(_TEX_ROCK);
-end
-
-finalize
-   _TEX_rock = _IMG_LoadTexture(_REN, "imgs/rock_small.gif");
-with
-   _SDL_DestroyTexture(_TEX_rock);
-end
-
-finalize
-   _TEX_BONUS_LIFE = _SDL_text2texture(_REN, _FONT_SMALL, "+1",
-                                       (_SDL_Color&&)&&white, null);
-with
-   _SDL_DestroyTexture(_TEX_BONUS_LIFE);
-end
-
-finalize
-    _TEX_BONUS_SHIELD = _SDL_text2texture(_REN, _FONT_SMALL, "S",
-                                          (_SDL_Color&&)&&white, null);
-with
-   _SDL_DestroyTexture(_TEX_BONUS_SHIELD);
-end
-
-finalize
-   _TEX_BONUS_HITS = _SDL_text2texture(_REN, _FONT_SMALL, "H",
-                                       (_SDL_Color&&)&&white, null);
-with
-   _SDL_DestroyTexture(_TEX_BONUS_HITS);
-end
-
-finalize
-   _TEX_BONUS_FIRE = _SDL_text2texture(_REN, _FONT_SMALL, "F",
-                                       (_SDL_Color&&)&&white, null);
-with
-   _SDL_DestroyTexture(_TEX_BONUS_FIRE);
-end
-
-loop i in 3 do
-    var _char[5] str = [];
-    _sprintf(&&str, "%d", i+1);
-    finalize
-        _TEX_BOMB[i] = _SDL_text2texture(_REN, _FONT_SMALL, &&str,
-                                         (_SDL_Color&&)&&white, null);
-    with
-        // finalize below
+code/await Texs (void)
+                    => (var&        SDL_Texture tex_bg,
+                        vector&[10] SDL_Texture tex_nums)
+                        => void
+do
+    watching SDL_open_texture(&outer.ren, "imgs/bg.png") => (bg) do
+    watching SDL_open_font("fnts/vera.ttf", WIN_H/20) => (font) do
+    watching SDL_new_text(&outer.ren, &font, "0", SDL_COLOR_WHITE) => (num_0) do
+    watching SDL_new_text(&outer.ren, &font, "1", SDL_COLOR_WHITE) => (num_1) do
+    watching SDL_new_text(&outer.ren, &font, "2", SDL_COLOR_WHITE) => (num_2) do
+    watching SDL_new_text(&outer.ren, &font, "3", SDL_COLOR_WHITE) => (num_3) do
+    watching SDL_new_text(&outer.ren, &font, "4", SDL_COLOR_WHITE) => (num_4) do
+    watching SDL_new_text(&outer.ren, &font, "5", SDL_COLOR_WHITE) => (num_5) do
+    watching SDL_new_text(&outer.ren, &font, "6", SDL_COLOR_WHITE) => (num_6) do
+    watching SDL_new_text(&outer.ren, &font, "7", SDL_COLOR_WHITE) => (num_7) do
+    watching SDL_new_text(&outer.ren, &font, "8", SDL_COLOR_WHITE) => (num_8) do
+    watching SDL_new_text(&outer.ren, &font, "9", SDL_COLOR_WHITE) => (num_9) do
+        vector[10] SDL_Texture nums_ = [ num_0, num_1, num_2, num_3, num_4,
+                                         num_5, num_6, num_7, num_8, num_9 ];
+        tex_bg   = &bg;
+        tex_nums = &nums_;
+        await FOREVER;
+    end
+    end
+    end
+    end
+    end
+    end
+    end
+    end
+    end
+    end
+    end
     end
 end
-finalize with
-    loop i in 3 do
-        _SDL_DestroyTexture(_TEX_BOMB[i]);
-    end
-end
-loop i in 3 do
-    _assert(_TEX_BOMB[i] != null);
-end
-
-loop i in 10 do
-    var _char[5] str = [];
-    _sprintf(&&str, "%d", i);
-    finalize
-        _TEX_NUM[i] = _SDL_text2texture(_REN, _FONT_BIG, &&str,
-                                        (_SDL_Color&&)&&white, null);
-    with
-        // finalize below
-    end
-end
-finalize with
-    loop i in 10 do
-        _SDL_DestroyTexture(_TEX_NUM[i]);
-    end
-end
-loop i in 10 do
-    _assert(_TEX_NUM[i] != null);
-end
-
-#ifdef CEU_TIMEMACHINE
-end
-#endif
