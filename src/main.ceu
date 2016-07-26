@@ -6,17 +6,48 @@
 
 watching SDL_go("Rocks!", WIN_W,WIN_H, _) => (ren) do
     #include "texs.ceu"
-    watching Texs() => (tex_bg, tex_nums) do
+    watching Texs() => (tex_bg, tex_tap, tex_nums) do
         par do
             every SDL_REDRAW do
                 _SDL_RenderCopy(ren, tex_bg.ptr, null, null);
             end
         with
             #include "points.ceu"
-            watching Points(SDL_Point(100,100)) => (out_inc,pts) do
-                every 1s do
-                    _printf("> %d\n", pts);
-                    emit out_inc;
+            var int x = WIN_W / 15;
+            var int y = WIN_H - WIN_H/10;
+            watching Points(SDL_Point(x,      y)) => (points1)
+                   , Points(SDL_Point(WIN_W-x,y)) => (points2)
+            do
+                par do
+                    every 1s do
+                        emit points1.inc;
+                    end
+                with
+                    every 2s do
+                        emit points2.inc;
+                    end
+                with
+                    loop do
+                        var SDL_Rect r = val SDL_Rect(WIN_W/2 - tex_tap.width/2,
+                                                      WIN_H/2 - tex_tap.height/2,
+                                                      tex_tap.width, tex_tap.height);
+
+                        par/or do
+                            await 1s;
+                            await SDL_KEYDOWN;
+                        with
+                            loop do
+                                await 500ms;
+                                watching 500ms do
+                                    every SDL_REDRAW do
+                                        _SDL_RenderCopy(ren, tex_tap.ptr, null,
+                                                        (&&r as _SDL_Rect&&));
+                                    end
+                                end
+                            end
+                        end
+await 2s;
+                    end
                 end
             end
         end

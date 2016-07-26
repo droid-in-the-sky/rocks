@@ -1,13 +1,14 @@
-code/await Points (var SDL_Point pos)
-                    => (event& void in_inc, var& int v)
-                    //=> (var& int v)
-                        => void
-do
-    event void in_inc_;
-    in_inc = &in_inc_;
+data IPoints with
+    var&   int  cur;
+    event& void inc;
+end
 
-    var int v_ = 0;
-    v = &v_;
+code/await Points (var SDL_Point pos) => (var& IPoints me) => void do
+    var int cur = 0;
+    event void inc;
+
+    var IPoints me_ = val IPoints(&cur,&inc);
+    me = &me_;
 
     var int v0=0, v1=0, v2=0;
 
@@ -15,23 +16,23 @@ do
     var SDL_Rect rect = val SDL_Rect(pos.x,pos.y, tex.width,tex.height);
 
     par do
-        every in_inc_ do
-            v_ = v_ + 1;
-            v_ = v_ % 1000;
-            v0 =     v_ % 10;
-            v1 =  v_/10 % 10;
-            v2 = v_/100 % 10;
+        every inc do
+            cur = cur + 1;
+            cur = cur % 1000;
+            v0 =     cur % 10;
+            v1 =  cur/10 % 10;
+            v2 = cur/100 % 10;
         end
     with
         every SDL_REDRAW do
             var SDL_Rect r = rect;
             _SDL_RenderCopy(outer.ren, outer.tex_nums[v0].ptr,
                             null, (&&r as _SDL_Rect&&));
-            if v_ >= 10 then
+            if cur >= 10 then
                 r.x = r.x - r.w;
                 _SDL_RenderCopy(outer.ren, outer.tex_nums[v1].ptr,
                                 null, (&&r as _SDL_Rect&&));
-                if v_ >= 100 then
+                if cur >= 100 then
                     r.x = r.x - r.w;
                     _SDL_RenderCopy(outer.ren, outer.tex_nums[v2].ptr,
                                     null, (&&r as _SDL_Rect&&));
