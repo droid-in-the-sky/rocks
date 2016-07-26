@@ -4,9 +4,13 @@
 #define WIN_W 1280
 #define WIN_H  800
 
+#include "snds.ceu"
+
 watching SDL_go("Rocks!", WIN_W,WIN_H, _) => (ren) do
     #include "texs.ceu"
-    watching Texs() => (tex_bg, tex_tap, tex_nums) do
+    watching Texs() => (tex_bg, tex_tap, tex_nums)
+           , Snds() => (snd_start)
+    do
         par do
             every SDL_REDRAW do
                 _SDL_RenderCopy(ren, tex_bg.ptr, null, null);
@@ -46,6 +50,7 @@ watching SDL_go("Rocks!", WIN_W,WIN_H, _) => (ren) do
                                 end
                             end
                         end
+                        _Mix_PlayChannel(-1, snd_start, 0);
 await 2s;
                     end
                 end
