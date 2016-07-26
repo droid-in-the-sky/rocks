@@ -1,13 +1,10 @@
 data IPoints with
-    var&   int  cur;
-    event& void inc;
+    event void inc;
+    var   int  cur;
 end
 
 code/await Points (var SDL_Point pos) => (var& IPoints me) => void do
-    var int cur = 0;
-    event void inc;
-
-    var IPoints me_ = val IPoints(&cur,&inc);
+    var IPoints me_ = val IPoints(_,0);
     me = &me_;
 
     var int v0=0, v1=0, v2=0;
@@ -16,23 +13,23 @@ code/await Points (var SDL_Point pos) => (var& IPoints me) => void do
     var SDL_Rect rect = val SDL_Rect(pos.x,pos.y, tex.width,tex.height);
 
     par do
-        every inc do
-            cur = cur + 1;
-            cur = cur % 1000;
-            v0 =     cur % 10;
-            v1 =  cur/10 % 10;
-            v2 = cur/100 % 10;
+        every me_.inc do
+            me_.cur = me_.cur + 1;
+            me_.cur = me_.cur % 1000;
+            v0 = me_.cur     % 10;
+            v1 = me_.cur/10  % 10;
+            v2 = me_.cur/100 % 10;
         end
     with
         every SDL_REDRAW do
             var SDL_Rect r = rect;
             _SDL_RenderCopy(outer.ren, outer.tex_nums[v0].ptr,
                             null, (&&r as _SDL_Rect&&));
-            if cur >= 10 then
+            if me_.cur >= 10 then
                 r.x = r.x - r.w;
                 _SDL_RenderCopy(outer.ren, outer.tex_nums[v1].ptr,
                                 null, (&&r as _SDL_Rect&&));
-                if cur >= 100 then
+                if me_.cur >= 100 then
                     r.x = r.x - r.w;
                     _SDL_RenderCopy(outer.ren, outer.tex_nums[v2].ptr,
                                     null, (&&r as _SDL_Rect&&));
