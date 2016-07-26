@@ -1,8 +1,11 @@
 code/await Points (var SDL_Point pos)
-                    //=> (event& void go_inc, var& int v)
-                    => (var& int v)
+                    => (event& void in_inc, var& int v)
+                    //=> (var& int v)
                         => void
 do
+    event void in_inc_;
+    in_inc = &in_inc_;
+
     var int v_ = 0;
     v = &v_;
 
@@ -12,7 +15,7 @@ do
     var SDL_Rect rect = val SDL_Rect(pos.x,pos.y, tex.width,tex.height);
 
     par do
-        every 1s do
+        every in_inc_ do
             v_ = v_ + 1;
             v_ = v_ % 1000;
             v0 =     v_ % 10;

@@ -13,10 +13,10 @@ watching SDL_go("Rocks!", WIN_W,WIN_H, _) => (ren) do
             end
         with
             #include "points.ceu"
-            watching Points(SDL_Point(100,100)) => (pts) do
+            watching Points(SDL_Point(100,100)) => (out_inc,pts) do
                 every 1s do
                     _printf("> %d\n", pts);
-                    //emit go_inc;
+                    emit out_inc;
                 end
             end
         end
