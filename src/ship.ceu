@@ -4,8 +4,8 @@ data IController with
 end
 
 data Keys with
-    var int up, down, left, right;
     var int fire;
+    var int up, down, left, right;
 end
 
 code/await Controller (var Keys keys) => (var& IController ctrl) => void

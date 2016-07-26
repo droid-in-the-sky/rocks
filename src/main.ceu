@@ -7,60 +7,58 @@
 #include "snds.ceu"
 
 watching SDL_go("Rocks!", WIN_W,WIN_H, _) => (ren) do
+
     #include "texs.ceu"
     #include "ship.ceu"
-    watching Texs() => (tex_bg, tex_ship1, tex_tap, tex_nums)
-           , Snds() => (snd_start)
-    do
+
+    spawn Texs() => (tex_bg, tex_ship1, tex_tap, tex_nums);
+    spawn Snds() => (snd_start);
+
+    par do
+        every SDL_REDRAW do
+            _SDL_RenderCopy(ren, tex_bg.ptr, null, null);
+        end
+    with
+        #include "points.ceu"
+        var int x = WIN_W / 15;
+        var int y = WIN_H - WIN_H/10;
+        spawn Points(SDL_Point(x,      y)) => (points1);
+        spawn Points(SDL_Point(WIN_W-x,y)) => (points2);
         par do
-            every SDL_REDRAW do
-                _SDL_RenderCopy(ren, tex_bg.ptr, null, null);
+            every 1s do
+                emit points1.inc;
             end
         with
-            #include "points.ceu"
-            var int x = WIN_W / 15;
-            var int y = WIN_H - WIN_H/10;
-            watching Points(SDL_Point(x,      y)) => (points1)
-                   , Points(SDL_Point(WIN_W-x,y)) => (points2)
-            do
-                par do
-                    every 1s do
-                        emit points1.inc;
-                    end
+            every 2s do
+                emit points2.inc;
+            end
+        with
+            loop do
+                par/or do
+                    await 1s;
+                    await SDL_KEYDOWN;
                 with
-                    every 2s do
-                        emit points2.inc;
-                    end
-                with
+                    var SDL_Rect r =
+                        val SDL_Rect(WIN_W/2 - tex_tap.width/2,
+                                     WIN_H/2 - tex_tap.height/2,
+                                     tex_tap.width, tex_tap.height);
                     loop do
-                        par/or do
-                            await 1s;
-                            await SDL_KEYDOWN;
-                        with
-                            var SDL_Rect r =
-                                val SDL_Rect(WIN_W/2 - tex_tap.width/2,
-                                             WIN_H/2 - tex_tap.height/2,
-                                             tex_tap.width, tex_tap.height);
-                            loop do
-                                await 500ms;
-                                watching 500ms do
-                                    every SDL_REDRAW do
-                                        _SDL_RenderCopy(ren, tex_tap.ptr, null,
-                                                        (&&r as _SDL_Rect&&));
-                                    end
-                                end
+                        await 500ms;
+                        watching 500ms do
+                            every SDL_REDRAW do
+                                _SDL_RenderCopy(ren, tex_tap.ptr, null,
+                                                (&&r as _SDL_Rect&&));
                             end
-                        end
-                        _Mix_PlayChannel(-1, snd_start, 0);
-
-                        watching Controller(Keys(_SDLK_UP,_SDLK_DOWN,_SDLK_LEFT,_SDLK_RIGHT,_SDLK_SEMICOLON))
-                                    => (ctrl)
-                               , Ship(&tex_ship1, &ctrl)
-                        do
-                            await FOREVER;
                         end
                     end
                 end
+                _Mix_PlayChannel(-1, snd_start, 0);
+
+                spawn Controller(Keys(_SDLK_SEMICOLON, _SDLK_UP,  _SDLK_DOWN,
+                                                       _SDLK_LEFT,_SDLK_RIGHT))
+                            => (ctrl);
+                spawn Ship(&tex_ship1, &ctrl);
+                await FOREVER;
             end
         end
     end
