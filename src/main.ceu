@@ -8,7 +8,8 @@
 
 watching SDL_go("Rocks!", WIN_W,WIN_H, _) => (ren) do
     #include "texs.ceu"
-    watching Texs() => (tex_bg, tex_tap, tex_nums)
+    #include "ship.ceu"
+    watching Texs() => (tex_bg, tex_ship1, tex_tap, tex_nums)
            , Snds() => (snd_start)
     do
         par do
@@ -32,14 +33,14 @@ watching SDL_go("Rocks!", WIN_W,WIN_H, _) => (ren) do
                     end
                 with
                     loop do
-                        var SDL_Rect r = val SDL_Rect(WIN_W/2 - tex_tap.width/2,
-                                                      WIN_H/2 - tex_tap.height/2,
-                                                      tex_tap.width, tex_tap.height);
-
                         par/or do
                             await 1s;
                             await SDL_KEYDOWN;
                         with
+                            var SDL_Rect r =
+                                val SDL_Rect(WIN_W/2 - tex_tap.width/2,
+                                             WIN_H/2 - tex_tap.height/2,
+                                             tex_tap.width, tex_tap.height);
                             loop do
                                 await 500ms;
                                 watching 500ms do
@@ -51,7 +52,13 @@ watching SDL_go("Rocks!", WIN_W,WIN_H, _) => (ren) do
                             end
                         end
                         _Mix_PlayChannel(-1, snd_start, 0);
-await 2s;
+
+                        watching Controller(Keys(_SDLK_UP,_SDLK_DOWN,_SDLK_LEFT,_SDLK_RIGHT,_SDLK_SEMICOLON))
+                                    => (ctrl)
+                               , Ship(&tex_ship1, &ctrl)
+                        do
+                            await FOREVER;
+                        end
                     end
                 end
             end

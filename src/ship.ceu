@@ -1,0 +1,68 @@
+data IController with
+    event void ok_fired;
+    var float ax, ay;
+end
+
+data Keys with
+    var int up, down, left, right;
+    var int fire;
+end
+
+code/await Controller (var Keys keys) => (var& IController ctrl) => void
+do
+    var IController ctrl_ = val IController(_,0,0);
+    ctrl = &ctrl_;
+
+    par do
+        every key in SDL_KEYDOWN do
+            if key:keysym.sym == keys.up then
+                ctrl_.ay = -(WIN_H as float)/5000;
+            else/if key:keysym.sym == keys.down then
+                ctrl_.ay =  (WIN_H as float)/5000;
+            else/if key:keysym.sym == keys.left then
+                ctrl_.ax = -(WIN_W as float)/5000;
+            else/if key:keysym.sym == keys.right then
+                ctrl_.ax =  (WIN_W as float)/5000;
+            else/if key:keysym.sym == keys.fire then
+                emit ctrl_.ok_fired;
+            end
+        end
+    with
+        every key in SDL_KEYUP do
+            if key:keysym.sym == keys.up
+            or key:keysym.sym == keys.down then
+                ctrl_.ay = 0;
+            else/if key:keysym.sym == keys.left
+                 or key:keysym.sym == keys.right then
+                ctrl_.ax = 0;
+            end
+        end
+    end
+end
+
+code/await Ship (var& SDL_Texture tex, var& IController ctrl) => void
+do
+    var int dir = 1;
+    var int dim = tex.width;
+    var SDL_Rect rect_clip = val SDL_Rect(0,0, dim,dim);
+    var SDL_Rect rect = val SDL_Rect(100,100, dim,dim);
+
+        every SDL_REDRAW do
+
+            // choose ship frame
+            if ctrl.ay > 0 then
+                rect_clip.y = dim*3;
+            else/if ctrl.ay < 0 then
+                rect_clip.y = dim*2;
+            else/if ctrl.ax*dir < 0 then
+                rect_clip.y = 0;
+            else
+                rect_clip.y = dim*1;
+            end
+
+            // redraw sprite
+            var SDL_Rect r = val SDL_Rect(rect.x-dim/2, rect.y-dim/2, dim,dim);
+            _SDL_RenderCopy(outer.ren, tex.ptr, (&&rect_clip as _SDL_Rect&&),
+                                                (&&r as _SDL_Rect&&));
+        end
+end
