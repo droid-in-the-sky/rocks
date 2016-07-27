@@ -6,13 +6,16 @@
 
 #include "snds.ceu"
 
-watching SDL_go("Rocks!", WIN_W,WIN_H, _) => (ren) do
+data Orientation;
+data Orientation.Right is  1;
+data Orientation.Left  is -1;
 
+watching SDL_go("Rocks!", WIN_W,WIN_H, _) => (ren)
+do
     #include "texs.ceu"
+    spawn Texs() => (tex_bg, tex_ship1, tex_ship2, tex_tap, tex_nums);
+    spawn Snds() => (snd_start, snd_explosion);
     #include "ship.ceu"
-
-    spawn Texs() => (tex_bg, tex_ship1, tex_tap, tex_nums);
-    spawn Snds() => (snd_start);
 
     par do
         every SDL_REDRAW do
@@ -56,8 +59,15 @@ watching SDL_go("Rocks!", WIN_W,WIN_H, _) => (ren) do
 
                 spawn Controller(Keys(_SDLK_SEMICOLON, _SDLK_UP,  _SDLK_DOWN,
                                                        _SDLK_LEFT,_SDLK_RIGHT))
-                            => (ctrl);
-                spawn Ship(&tex_ship1, &ctrl);
+                            => (ctrl1);
+                spawn Ship(&tex_ship1, SDL_Point(tex_ship1.width,WIN_H/2),
+                           Orientation.Right(), &ctrl1);
+
+                spawn Controller(Keys(_SDLK_z, _SDLK_w,_SDLK_s,
+                                               _SDLK_a,_SDLK_d))
+                            => (ctrl2);
+                spawn Ship(&tex_ship2, SDL_Point(WIN_W-tex_ship2.width,WIN_H/2),
+                           Orientation.Left(), &ctrl2);
                 await FOREVER;
             end
         end

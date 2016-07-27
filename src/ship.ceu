@@ -40,29 +40,92 @@ do
     end
 end
 
-code/await Ship (var& SDL_Texture tex, var& IController ctrl) => void
-do
-    var int dir = 1;
-    var int dim = tex.width;
-    var SDL_Rect rect_clip = val SDL_Rect(0,0, dim,dim);
-    var SDL_Rect rect = val SDL_Rect(100,100, dim,dim);
+data IMovable with
+    var& SDL_Rect rect;
+    var& float ax;
+    var& float ay;
+end
 
+code/await Move (var& IMovable obj) => void
+do
+    var float sx = obj.rect.x;
+    var float sy = obj.rect.y;
+
+    var float vx = 0;
+    var float vy = 0;
+
+    loop do
+        var int dt = await SDL_DT;
+
+        vx = vx + obj.ax*dt;
+        sx = sx + vx*dt/1000;
+        obj.rect.x = (sx as int);
+        if obj.rect.x < 0
+        or obj.rect.x > WIN_W then
+            break;
+        end
+
+        vy = vy + obj.ay*dt;
+        sy = sy + vy*dt/1000;
+        obj.rect.y = (sy as int);
+        if obj.rect.y < 0
+        or obj.rect.y > WIN_H then
+            break;
+        end
+    end
+end
+
+code/await Ship
+    (
+        var& SDL_Texture tex,
+        var  SDL_Point   pos,
+        var  Orientation ori,
+        var& IController ctrl
+    ) => void
+do
+    var int dim = tex.width;
+    var SDL_Rect clip = val SDL_Rect(0,0, dim,dim);
+    var SDL_Rect rect = val SDL_Rect(pos.x,pos.y, dim,dim);
+
+    var IMovable obj = val IMovable(&rect, &ctrl.ax, &ctrl.ay);
+
+    watching Move(&obj) do
         every SDL_REDRAW do
 
-            // choose ship frame
+            // set sprite frame depending on the controller acceleration
             if ctrl.ay > 0 then
-                rect_clip.y = dim*3;
+                clip.y = dim*3;
             else/if ctrl.ay < 0 then
-                rect_clip.y = dim*2;
-            else/if ctrl.ax*dir < 0 then
-                rect_clip.y = 0;
+                clip.y = dim*2;
+            else/if ctrl.ax*(ori as int) < 0 then
+                clip.y = 0;
             else
-                rect_clip.y = dim*1;
+                clip.y = dim*1;
             end
 
-            // redraw sprite
+            // redraw sprite frame
             var SDL_Rect r = val SDL_Rect(rect.x-dim/2, rect.y-dim/2, dim,dim);
-            _SDL_RenderCopy(outer.ren, tex.ptr, (&&rect_clip as _SDL_Rect&&),
+            _SDL_RenderCopy(outer.ren, tex.ptr, (&&clip as _SDL_Rect&&),
                                                 (&&r as _SDL_Rect&&));
         end
+    end
+
+    // explode 40w/s
+    _Mix_PlayChannel(-1, outer.snd_explosion, 0);
+    watching 100ms do
+        par do
+            var float d = dim;
+            var float v = 40 * dim;
+            every dt in SDL_DT do
+                d = d + v*dt/1000;
+                rect.w = d as int;
+                rect.h = d as int;
+            end
+        with
+            every SDL_REDRAW do
+                _filledCircleRGBA(outer.ren, rect.x,rect.y,rect.w,
+                                             0xFF,0x00,0x00,0xFF);
+            end
+        end
+    end
 end

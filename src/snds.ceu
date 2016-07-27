@@ -1,8 +1,11 @@
 code/await Snds (void)
-                    => (var& _Mix_Chunk_ptr snd_start)
+                    => (var& _Mix_Chunk_ptr snd_start,
+                        var& _Mix_Chunk_ptr snd_explosion)
                         => void
 do
-    spawn SDL_open_sound("snds/start.wav") => (start);
-    snd_start = &start;
+    spawn SDL_open_sound("snds/start.wav")     => (start);
+    spawn SDL_open_sound("snds/explosion.wav") => (explosion);
+    snd_start     = &start;
+    snd_explosion = &explosion;
     await FOREVER;
 end

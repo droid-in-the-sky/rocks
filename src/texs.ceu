@@ -3,12 +3,14 @@
 code/await Texs (void)
                     => (var&        SDL_Texture tex_bg,
                         var&        SDL_Texture tex_ship1,
+                        var&        SDL_Texture tex_ship2,
                         var&        SDL_Texture tex_tap,
                         vector&[10] SDL_Texture tex_nums)
                         => void
 do
     spawn SDL_open_texture(&outer.ren, "imgs/bg.png")        => (bg);
     spawn SDL_open_texture(&outer.ren, "imgs/ship_1.gif")    => (ship1);
+    spawn SDL_open_texture(&outer.ren, "imgs/ship_2.gif")    => (ship2);
     spawn SDL_open_font("fnts/vera.ttf", WIN_H/20)           => (font_big);
     spawn SDL_new_text(REN, &font_big, "= TAP TO START =",
                                             SDL_COLOR_WHITE) => (tap);
@@ -27,6 +29,7 @@ do
                                     num_5, num_6, num_7, num_8, num_9 ];
     tex_bg    = &bg;
     tex_ship1 = &ship1;
+    tex_ship2 = &ship2;
     tex_tap   = &tap;
     tex_nums  = &nums;
     await FOREVER;
