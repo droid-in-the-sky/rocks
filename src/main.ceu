@@ -4,18 +4,19 @@
 #define WIN_W 1280
 #define WIN_H  800
 
-#define DIM     tex_ship1.width
-#define DIM_OUT outer.tex_ship1.width
-
+#define DIM     tex_ship_1.width
+#define DIM_OUT outer.tex_ship_1.width
 
 #include "snds.ceu"
+#include "objs.ceu"
 
 watching SDL_go("Rocks!", WIN_W,WIN_H, _) => (ren)
 do
     #include "texs.ceu"
-    spawn Texs() => (tex_bg, tex_ship1, tex_ship2, tex_tap, tex_nums);
+    spawn Texs() => (tex_bg, tex_ship_1, tex_ship2, tex_rock_big, tex_tap, tex_nums);
     spawn Snds() => (snd_start, snd_explosion);
     #include "ship.ceu"
+    #include "rocks.ceu"
 
     par do
         every SDL_REDRAW do
@@ -57,33 +58,39 @@ do
                 end
                 _Mix_PlayChannel(-1, snd_start, 0);
 
-                spawn Controller (
-                    Keys(_SDLK_z, _SDLK_w,_SDLK_s, _SDLK_a,_SDLK_d)
-                ) => (ctrl1);
+                par do
+                    spawn Controller (
+                        Keys(_SDLK_z, _SDLK_w,_SDLK_s, _SDLK_a,_SDLK_d)
+                    ) => (ctrl1);
 
-                spawn Ship (
-                    &tex_ship1,
-                    SDL_Point(tex_ship1.width, WIN_H/2),
-                    Orientation.Right(),
-                    Limits(SDL_Point(DIM/2,         DIM/2),
-                           SDL_Point(WIN_W/2-DIM/2, WIN_H-DIM/2)),
-                    &ctrl1,
-                );
+                    spawn Ship (
+                        &tex_ship_1,
+                        SDL_Point(tex_ship_1.width, WIN_H/2),
+                        Orientation.Right(),
+                        Limits(SDL_Point(DIM/2,         DIM/2),
+                               SDL_Point(WIN_W/2-DIM/2, WIN_H-DIM/2)),
+                        &ctrl1,
+                    );
 
-                spawn Controller (
-                    Keys(_SDLK_SEMICOLON, _SDLK_UP,_SDLK_DOWN, _SDLK_LEFT,_SDLK_RIGHT)
-                ) => (ctrl2);
+                    spawn Controller (
+                        Keys(_SDLK_SEMICOLON, _SDLK_UP,_SDLK_DOWN, _SDLK_LEFT,_SDLK_RIGHT)
+                    ) => (ctrl2);
 
-                spawn Ship (
-                    &tex_ship2,
-                    SDL_Point(WIN_W-tex_ship2.width, WIN_H/2),
-                    Orientation.Left(),
-                    Limits(SDL_Point(WIN_W/2+DIM/2, DIM/2),
-                           SDL_Point(WIN_W-DIM/2,   WIN_H-DIM/2)),
-                    &ctrl2,
-                );
-
-                await FOREVER;
+                    spawn Ship (
+                        &tex_ship2,
+                        SDL_Point(WIN_W-tex_ship2.width, WIN_H/2),
+                        Orientation.Left(),
+                        Limits(SDL_Point(WIN_W/2+DIM/2, DIM/2),
+                               SDL_Point(WIN_W-DIM/2,   WIN_H-DIM/2)),
+                        &ctrl2,
+                    );
+                    await FOREVER;
+                with
+                    pool[2] Rock_Big rocks;
+                    every 2s do
+                        spawn Rock_Big(&tex_rock_big) in rocks;
+                    end
+                end
             end
         end
     end
