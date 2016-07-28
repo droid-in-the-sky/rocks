@@ -40,35 +40,34 @@ do
     end
 end
 
-data IMovable with
-    var& SDL_Rect rect;
-    var& float vx;
-    var& float vy;
-    var& float ax;
-    var& float ay;
+data Axis with
+    var float s;
+    var float v;
+    var float a;
 end
 
-code/await Move (var& IMovable obj) => void
-do
-    var float sx = obj.rect.x;
-    var float sy = obj.rect.y;
+data Movable with
+    var Axis x;
+    var Axis y;
+end
 
+code/await Move (var& SDL_Rect rect, var& Movable obj) => void
+do
     loop do
         var int dt = await SDL_DT;
 
-        obj.vx = obj.vx + obj.ax*dt;
-        sx = sx + obj.vx*dt/1000;
-        obj.rect.x = (sx as int);
-        if obj.rect.x < 0
-        or obj.rect.x > WIN_W then
+        obj.x.v = obj.x.v + obj.x.a*dt;
+        obj.x.s = obj.x.s + obj.x.v*dt/1000;
+        rect.x = obj.x.s as int;
+
+        obj.y.v = obj.y.v + obj.y.a*dt;
+        obj.y.s = obj.y.s + obj.y.v*dt/1000;
+        rect.y = obj.y.s as int;
+
+        if obj.x.s<0 or obj.x.s>WIN_W then
             break;
         end
-
-        obj.vy = obj.vy + obj.ay*dt;
-        sy = sy + obj.vy*dt/1000;
-        obj.rect.y = (sy as int);
-        if obj.rect.y < 0
-        or obj.rect.y > WIN_H then
+        if obj.y.s<0 or obj.y.s>WIN_H then
             break;
         end
     end
@@ -85,10 +84,10 @@ do
     var int h = WIN_H/250;
     var SDL_Rect rect = val SDL_Rect(pos.x,pos.y, w,h);
 
-    var float a = 0;
-    var IMovable obj = val IMovable(&rect, &vx,&vy, &a,&a);
+    var Movable obj = val Movable(Axis(rect.x, vx, 0),
+                                  Axis(rect.y, vy, 0));
 
-    watching Move(&obj) do
+    watching Move(&rect, &obj) do
         every SDL_REDRAW do
             _boxRGBA(outer.ren, rect.x,rect.y, rect.x+rect.w,rect.y+rect.h,
                                 0xFF,0xFF,0x88,0xFF);
@@ -96,48 +95,82 @@ do
     end
 end
 
+data Orientation;
+data Orientation.Right is  1;
+data Orientation.Left  is -1;
+
+data Limits with
+    var SDL_Point pt1;
+    var SDL_Point pt2;
+end
+
 code/await Ship (
         var& SDL_Texture tex,
         var  SDL_Point   pos,
         var  Orientation ori,
+        var  Limits      lim,
         var& IController ctrl,
     ) => void
 do
-    var int dim = tex.width;
-    var SDL_Rect clip = val SDL_Rect(0,0, dim,dim);
-    var SDL_Rect rect = val SDL_Rect(pos.x,pos.y, dim,dim);
+    var SDL_Rect clip = val SDL_Rect(0,0,         DIM_OUT,DIM_OUT);
+    var SDL_Rect rect = val SDL_Rect(pos.x,pos.y, DIM_OUT,DIM_OUT);
 
-    var float vx = 0;
-    var float vy = 0;
-    var IMovable obj = val IMovable(&rect, &vx,&vy, &ctrl.ax,&ctrl.ay);
-
-    watching Move(&obj) do
+    var Movable obj = val Movable(Axis(rect.x, 0, 0),
+                                  Axis(rect.y, 0, 0));
+    watching Move(&rect, &obj) do
         par do
             loop do
                 await 5s;
                 await Fire (
                         SDL_Point(rect.x,rect.y),
                         WIN_W/3 * (ori as int),
-                        vy,
+                        obj.y.v,
                         1
                       );
+            end
+        with
+            every dt in SDL_DT do
+                obj.x.a = ctrl.ax;
+                obj.y.a = ctrl.ay;
+
+                if obj.x.v >  WIN_W/10 then obj.x.v =  WIN_W/10; end
+                if obj.x.v < -WIN_W/10 then obj.x.v = -WIN_W/10; end
+                if obj.y.v >  WIN_H/10 then obj.y.v =  WIN_H/10; end
+                if obj.y.v < -WIN_H/10 then obj.y.v = -WIN_H/10; end
+
+                // Positions are limited to the screen limits:
+                if obj.x.s < lim.pt1.x then
+                    obj.x.s = lim.pt1.x;
+                    obj.x.v = 0;
+                else/if obj.x.s > lim.pt2.x then
+                    obj.x.s = lim.pt2.x;
+                    obj.x.v = 0;
+                end
+                if obj.y.s < lim.pt1.y then
+                    obj.y.s = lim.pt1.y;
+                    obj.y.v = 0;
+                else/if obj.y.s > lim.pt2.y then
+                    obj.y.s = lim.pt2.y;
+                    obj.y.v = 0;
+                end
             end
         with
             every SDL_REDRAW do
 
                 // set sprite frame depending on the controller acceleration
-                if ctrl.ay > 0 then
-                    clip.y = dim*3;
-                else/if ctrl.ay < 0 then
-                    clip.y = dim*2;
-                else/if ctrl.ax*(ori as int) < 0 then
+                if obj.y.a > 0 then
+                    clip.y = DIM_OUT*3;
+                else/if obj.y.a < 0 then
+                    clip.y = DIM_OUT*2;
+                else/if obj.y.a*(ori as int) < 0 then
                     clip.y = 0;
                 else
-                    clip.y = dim*1;
+                    clip.y = DIM_OUT*1;
                 end
 
                 // redraw sprite frame
-                var SDL_Rect r = val SDL_Rect(rect.x-dim/2, rect.y-dim/2, dim,dim);
+                var SDL_Rect r = val SDL_Rect(rect.x-DIM_OUT/2, rect.y-DIM_OUT/2,
+                                              DIM_OUT,DIM_OUT);
                 _SDL_RenderCopy(outer.ren, tex.ptr, (&&clip as _SDL_Rect&&),
                                                     (&&r as _SDL_Rect&&));
             end
@@ -148,8 +181,8 @@ do
     _Mix_PlayChannel(-1, outer.snd_explosion, 0);
     watching 100ms do
         par do
-            var float d = dim;
-            var float v = 40 * dim;
+            var float d = DIM_OUT;
+            var float v = 40 * DIM_OUT;
             every dt in SDL_DT do
                 d = d + v*dt/1000;
                 rect.w = d as int;

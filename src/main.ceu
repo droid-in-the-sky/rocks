@@ -4,11 +4,11 @@
 #define WIN_W 1280
 #define WIN_H  800
 
-#include "snds.ceu"
+#define DIM     tex_ship1.width
+#define DIM_OUT outer.tex_ship1.width
 
-data Orientation;
-data Orientation.Right is  1;
-data Orientation.Left  is -1;
+
+#include "snds.ceu"
 
 watching SDL_go("Rocks!", WIN_W,WIN_H, _) => (ren)
 do
@@ -65,6 +65,8 @@ do
                     &tex_ship1,
                     SDL_Point(tex_ship1.width, WIN_H/2),
                     Orientation.Right(),
+                    Limits(SDL_Point(DIM/2,         DIM/2),
+                           SDL_Point(WIN_W/2-DIM/2, WIN_H-DIM/2)),
                     &ctrl1,
                 );
 
@@ -76,6 +78,8 @@ do
                     &tex_ship2,
                     SDL_Point(WIN_W-tex_ship2.width, WIN_H/2),
                     Orientation.Left(),
+                    Limits(SDL_Point(WIN_W/2+DIM/2, DIM/2),
+                           SDL_Point(WIN_W-DIM/2,   WIN_H-DIM/2)),
                     &ctrl2,
                 );
 
