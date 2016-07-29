@@ -4,19 +4,25 @@
 #define WIN_W 1280
 #define WIN_H  800
 
-#define DIM     tex_ship_1.width
 #define DIM_OUT outer.tex_ship_1.width
 
 #include "snds.ceu"
 #include "objs.ceu"
 
+var& _SDL_Renderer_ptr ren;
 watching SDL_go("Rocks!", WIN_W,WIN_H, _) => (ren)
 do
     #include "texs.ceu"
-    spawn Texs() => (tex_bg, tex_ship_1, tex_ship2, tex_rock_big, tex_tap, tex_nums);
-    spawn Snds() => (snd_start, snd_explosion);
-    #include "ship.ceu"
     #include "rocks.ceu"
+
+    var& SDL_Texture tex_bg, tex_ship_1, tex_ship_2, tex_rock_big, tex_tap;
+    vector&[1] SDL_Texture tex_nums;
+    spawn Texs() => (tex_bg, tex_ship_1, tex_ship_2, tex_rock_big, tex_tap, tex_nums);
+
+    var& _Mix_Chunk_ptr snd_start, snd_explosion;
+    spawn Snds() => (snd_start, snd_explosion);
+
+    #include "ship.ceu"
 
     par do
         every SDL_REDRAW do
@@ -24,10 +30,12 @@ do
         end
     with
         #include "points.ceu"
+        var& IPoints points1, points2;
         var int x = WIN_W / 15;
         var int y = WIN_H - WIN_H/10;
         spawn Points(SDL_Point(x,      y)) => (points1);
         spawn Points(SDL_Point(WIN_W-x,y)) => (points2);
+
         par do
             every 1s do
                 emit points1.inc;
@@ -58,7 +66,10 @@ do
                 end
                 _Mix_PlayChannel(-1, snd_start, 0);
 
+                #define DIM tex_ship_1.width
                 par do
+                    var& IController ctrl1, ctrl2;
+
                     spawn Controller (
                         Keys(_SDLK_z, _SDLK_w,_SDLK_s, _SDLK_a,_SDLK_d)
                     ) => (ctrl1);
@@ -77,8 +88,8 @@ do
                     ) => (ctrl2);
 
                     spawn Ship (
-                        &tex_ship2,
-                        SDL_Point(WIN_W-tex_ship2.width, WIN_H/2),
+                        &tex_ship_2,
+                        SDL_Point(WIN_W-tex_ship_2.width, WIN_H/2),
                         Orientation.Left(),
                         Limits(SDL_Point(WIN_W/2+DIM/2, DIM/2),
                                SDL_Point(WIN_W-DIM/2,   WIN_H-DIM/2)),
@@ -91,6 +102,7 @@ do
                         spawn Rock_Big(&tex_rock_big) in rocks;
                     end
                 end
+                #undef DIM
             end
         end
     end

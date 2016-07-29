@@ -14,7 +14,7 @@ do
     ctrl = &ctrl_;
 
     par do
-        var _SDL_KeyboardEvent&& key = _;
+        var _SDL_KeyboardEvent&& key;
         every key in SDL_KEYDOWN do
             if key:keysym.sym == keys.up then
                 ctrl_.ay = -(WIN_H as float)/5000;
@@ -29,7 +29,7 @@ do
             end
         end
     with
-        var _SDL_KeyboardEvent&& key = _;
+        var _SDL_KeyboardEvent&& key;
         every key in SDL_KEYUP do
             if key:keysym.sym == keys.up
             or key:keysym.sym == keys.down then
@@ -95,6 +95,7 @@ do
                       );
             end
         with
+            var int dt;
             every dt in SDL_DT do
                 obj.x.a = ctrl.ax;
                 obj.y.a = ctrl.ay;
@@ -149,6 +150,7 @@ do
         par do
             var float d = DIM;
             var float v = 40 * DIM;
+            var int dt;
             every dt in SDL_DT do
                 d = d + v*dt/1000;
                 rect.w = d as int;

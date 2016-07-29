@@ -28,6 +28,7 @@ do
         par do
             var float v = _sqrt(obj.x.v*obj.x.v + obj.y.v*obj.y.v);
             var float p = 0;
+            var int dt;
             every dt in SDL_DT do
                 p = p + v*dt/1000;
                 clip.x = ((p/rect.w) as int)*rect.w % (6*rect.w);
