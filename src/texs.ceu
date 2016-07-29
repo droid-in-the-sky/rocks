@@ -1,21 +1,27 @@
 #define REN &outer.ren
 
 code/await Texs (void)
-                    => (var&        SDL_Texture tex_bg,
-                        var&        SDL_Texture tex_ship_1,
-                        var&        SDL_Texture tex_ship_2,
-                        var&        SDL_Texture tex_rock_big,
-                        var&        SDL_Texture tex_tap,
-                        vector&[10] SDL_Texture tex_nums)
+                    => (var&        SDL_Texture bg,
+                        var&        SDL_Texture ship_1,
+                        var&        SDL_Texture ship_2,
+                        var&        SDL_Texture rock_big,
+                        var&        SDL_Texture tap,
+                        vector&[10] SDL_Texture nums)
                         => void
 do
-    spawn SDL_open_texture(&outer.ren, "imgs/bg.png")        => (bg);
-    spawn SDL_open_texture(&outer.ren, "imgs/ship_1.gif")    => (ship_1);
-    spawn SDL_open_texture(&outer.ren, "imgs/ship_2.gif")    => (ship_2);
-    spawn SDL_open_texture(&outer.ren, "imgs/rock_big.gif")  => (rock_big);
+    var& SDL_Texture bg_, ship_1_, ship_2_, rock_big_, tap_;
+
+    var& _TTF_Font_ptr font_big;
+    var& SDL_Texture num_0, num_1, num_2, num_3, num_4,
+                     num_5, num_6, num_7, num_8, num_9;
+
+    spawn SDL_open_texture(&outer.ren, "imgs/bg.png")        => (bg_);
+    spawn SDL_open_texture(&outer.ren, "imgs/ship_1.gif")    => (ship_1_);
+    spawn SDL_open_texture(&outer.ren, "imgs/ship_2.gif")    => (ship_2_);
+    spawn SDL_open_texture(&outer.ren, "imgs/rock_big.gif")  => (rock_big_);
     spawn SDL_open_font("fnts/vera.ttf", WIN_H/20)           => (font_big);
     spawn SDL_new_text(REN, &font_big, "= TAP TO START =",
-                                            SDL_COLOR_WHITE) => (tap);
+                                            SDL_COLOR_WHITE) => (tap_);
     spawn SDL_new_text(REN, &font_big, "0", SDL_COLOR_WHITE) => (num_0);
     spawn SDL_new_text(REN, &font_big, "1", SDL_COLOR_WHITE) => (num_1);
     spawn SDL_new_text(REN, &font_big, "2", SDL_COLOR_WHITE) => (num_2);
@@ -27,13 +33,13 @@ do
     spawn SDL_new_text(REN, &font_big, "8", SDL_COLOR_WHITE) => (num_8);
     spawn SDL_new_text(REN, &font_big, "9", SDL_COLOR_WHITE) => (num_9);
 
-    vector[10] SDL_Texture nums = [ num_0, num_1, num_2, num_3, num_4,
-                                    num_5, num_6, num_7, num_8, num_9 ];
-    tex_bg       = &bg;
-    tex_ship_1   = &ship_1;
-    tex_ship_2   = &ship_2;
-    tex_rock_big = &rock_big;
-    tex_tap      = &tap;
-    tex_nums     = &nums;
+    vector[10] SDL_Texture nums_ = [ num_0, num_1, num_2, num_3, num_4,
+                                     num_5, num_6, num_7, num_8, num_9 ];
+    bg       = &bg_;
+    ship_1   = &ship_1_;
+    ship_2   = &ship_2_;
+    rock_big = &rock_big_;
+    tap      = &tap_;
+    nums     = &nums_;
     await FOREVER;
 end

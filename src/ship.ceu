@@ -14,6 +14,7 @@ do
     ctrl = &ctrl_;
 
     par do
+        var _SDL_KeyboardEvent&& key = _;
         every key in SDL_KEYDOWN do
             if key:keysym.sym == keys.up then
                 ctrl_.ay = -(WIN_H as float)/5000;
@@ -28,6 +29,7 @@ do
             end
         end
     with
+        var _SDL_KeyboardEvent&& key = _;
         every key in SDL_KEYUP do
             if key:keysym.sym == keys.up
             or key:keysym.sym == keys.down then
@@ -75,7 +77,9 @@ code/await Ship (
         var& IController ctrl,
     ) => void
 do
-    var SDL_Rect rect = val SDL_Rect(pos.x,pos.y, DIM_OUT,DIM_OUT);
+    #define DIM tex.width
+
+    var SDL_Rect rect = val SDL_Rect(pos.x,pos.y, DIM,DIM);
 
     var Movable obj = val Movable(Axis(rect.x, 0, 0),
                                   Axis(rect.y, 0, 0));
@@ -117,22 +121,22 @@ do
                 end
             end
         with
-            var SDL_Rect clip = val SDL_Rect(0,0, DIM_OUT,DIM_OUT);
+            var SDL_Rect clip = val SDL_Rect(0,0, DIM,DIM);
             every SDL_REDRAW do
                 // set sprite frame depending on the controller acceleration
                 if obj.y.a > 0 then
-                    clip.y = DIM_OUT*3;
+                    clip.y = DIM*3;
                 else/if obj.y.a < 0 then
-                    clip.y = DIM_OUT*2;
+                    clip.y = DIM*2;
                 else/if obj.y.a*(ori as int) < 0 then
                     clip.y = 0;
                 else
-                    clip.y = DIM_OUT*1;
+                    clip.y = DIM*1;
                 end
 
                 // redraw sprite frame
-                var SDL_Rect r = val SDL_Rect(rect.x-DIM_OUT/2, rect.y-DIM_OUT/2,
-                                              DIM_OUT,DIM_OUT);
+                var SDL_Rect r = val SDL_Rect(rect.x-DIM/2, rect.y-DIM/2,
+                                              DIM,DIM);
                 _SDL_RenderCopy(outer.ren, tex.ptr, (&&clip as _SDL_Rect&&),
                                                     (&&r as _SDL_Rect&&));
             end
@@ -143,8 +147,8 @@ do
     _Mix_PlayChannel(-1, outer.snd_explosion, 0);
     watching 100ms do
         par do
-            var float d = DIM_OUT;
-            var float v = 40 * DIM_OUT;
+            var float d = DIM;
+            var float v = 40 * DIM;
             every dt in SDL_DT do
                 d = d + v*dt/1000;
                 rect.w = d as int;
@@ -157,4 +161,6 @@ do
             end
         end
     end
+
+    #undef DIM
 end
