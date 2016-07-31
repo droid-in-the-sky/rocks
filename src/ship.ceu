@@ -53,10 +53,10 @@ do
     var int h = WIN_H/250;
     var SDL_Rect rect = val SDL_Rect(pos.x,pos.y, w,h);
 
-    var Movable obj = val Movable(Axis(rect.x, vx, 0),
+    var Movable mov = val Movable(Axis(rect.x, vx, 0),
                                   Axis(rect.y, vy, 0));
 
-    watching Move(&rect, &obj) do
+    watching Move(&rect, &mov) do
         every SDL_REDRAW do
             _boxRGBA(outer.ren, rect.x,rect.y, rect.x+rect.w,rect.y+rect.h,
                                 0xFF,0xFF,0x88,0xFF);
@@ -75,68 +75,71 @@ code/await Ship (
         var  Orientation ori,
         var  Limits      lim,
         var& IController ctrl,
+    ) => (
+        var& SDL_Rect rect,
     ) => void
 do
     #define DIM tex.width
 
-    var SDL_Rect rect = val SDL_Rect(pos.x,pos.y, DIM,DIM);
+    var SDL_Rect rect_ = val SDL_Rect(pos.x,pos.y, DIM,DIM);
+    rect = &rect_;
 
-    var Movable obj = val Movable(Axis(rect.x, 0, 0),
-                                  Axis(rect.y, 0, 0));
-    watching Move(&rect, &obj) do
+    var Movable mov = val Movable(Axis(rect_.x, 0, 0),
+                                  Axis(rect_.y, 0, 0));
+    watching Move(&rect_, &mov) do
         par do
             loop do
                 await 5s;
                 await Fire (
-                        SDL_Point(rect.x,rect.y),
+                        SDL_Point(rect_.x,rect_.y),
                         WIN_W/3 * (ori as int),
-                        obj.y.v,
+                        mov.y.v,
                         1
                       );
             end
         with
             var int dt;
             every dt in SDL_DT do
-                obj.x.a = ctrl.ax;
-                obj.y.a = ctrl.ay;
+                mov.x.a = ctrl.ax;
+                mov.y.a = ctrl.ay;
 
-                if obj.x.v >  WIN_W/10 then obj.x.v =  WIN_W/10; end
-                if obj.x.v < -WIN_W/10 then obj.x.v = -WIN_W/10; end
-                if obj.y.v >  WIN_H/10 then obj.y.v =  WIN_H/10; end
-                if obj.y.v < -WIN_H/10 then obj.y.v = -WIN_H/10; end
+                if mov.x.v >  WIN_W/10 then mov.x.v =  WIN_W/10; end
+                if mov.x.v < -WIN_W/10 then mov.x.v = -WIN_W/10; end
+                if mov.y.v >  WIN_H/10 then mov.y.v =  WIN_H/10; end
+                if mov.y.v < -WIN_H/10 then mov.y.v = -WIN_H/10; end
 
                 // Positions are limited to the screen limits:
-                if obj.x.s < lim.pt1.x then
-                    obj.x.s = lim.pt1.x;
-                    obj.x.v = 0;
-                else/if obj.x.s > lim.pt2.x then
-                    obj.x.s = lim.pt2.x;
-                    obj.x.v = 0;
+                if mov.x.s < lim.pt1.x then
+                    mov.x.s = lim.pt1.x;
+                    mov.x.v = 0;
+                else/if mov.x.s > lim.pt2.x then
+                    mov.x.s = lim.pt2.x;
+                    mov.x.v = 0;
                 end
-                if obj.y.s < lim.pt1.y then
-                    obj.y.s = lim.pt1.y;
-                    obj.y.v = 0;
-                else/if obj.y.s > lim.pt2.y then
-                    obj.y.s = lim.pt2.y;
-                    obj.y.v = 0;
+                if mov.y.s < lim.pt1.y then
+                    mov.y.s = lim.pt1.y;
+                    mov.y.v = 0;
+                else/if mov.y.s > lim.pt2.y then
+                    mov.y.s = lim.pt2.y;
+                    mov.y.v = 0;
                 end
             end
         with
             var SDL_Rect clip = val SDL_Rect(0,0, DIM,DIM);
             every SDL_REDRAW do
                 // set sprite frame depending on the controller acceleration
-                if obj.y.a > 0 then
+                if mov.y.a > 0 then
                     clip.y = DIM*3;
-                else/if obj.y.a < 0 then
+                else/if mov.y.a < 0 then
                     clip.y = DIM*2;
-                else/if obj.y.a*(ori as int) < 0 then
+                else/if mov.y.a*(ori as int) < 0 then
                     clip.y = 0;
                 else
                     clip.y = DIM*1;
                 end
 
                 // redraw sprite frame
-                var SDL_Rect r = val SDL_Rect(rect.x-DIM/2, rect.y-DIM/2,
+                var SDL_Rect r = val SDL_Rect(rect_.x-DIM/2, rect_.y-DIM/2,
                                               DIM,DIM);
                 _SDL_RenderCopy(outer.ren, tex.ptr, (&&clip as _SDL_Rect&&),
                                                     (&&r as _SDL_Rect&&));
@@ -153,12 +156,12 @@ do
             var int dt;
             every dt in SDL_DT do
                 d = d + v*dt/1000;
-                rect.w = d as int;
-                rect.h = d as int;
+                rect_.w = d as int;
+                rect_.h = d as int;
             end
         with
             every SDL_REDRAW do
-                _filledCircleRGBA(outer.ren, rect.x,rect.y,rect.w,
+                _filledCircleRGBA(outer.ren, rect_.x,rect_.y,rect_.w,
                                              0xFF,0x00,0x00,0xFF);
             end
         end

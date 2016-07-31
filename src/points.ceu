@@ -9,7 +9,7 @@ code/await Points (var SDL_Point pos) => (var& IPoints me) => void do
 
     var int v0=0, v1=0, v2=0;
 
-    var& SDL_Texture tex = &outer.tex_nums[0];
+    var SDL_Texture tex = outer.tex_nums[0];
     var SDL_Rect rect = val SDL_Rect(pos.x,pos.y, tex.width,tex.height);
 
     par do
