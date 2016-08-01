@@ -1,0 +1,43 @@
+data IController with
+    event void ok_fired;
+    var float ax, ay;
+end
+
+data Keys with
+    var int fire;
+    var int up, down, left, right;
+end
+
+code/await Controller (var Keys keys) => (var& IController ctrl) => void
+do
+    var IController ctrl_ = val IController(_,0,0);
+    ctrl = &ctrl_;
+
+    par do
+        var _SDL_KeyboardEvent&& key;
+        every key in SDL_KEYDOWN do
+            if key:keysym.sym == keys.up then
+                ctrl_.ay = -(WIN_H as float)/5000;
+            else/if key:keysym.sym == keys.down then
+                ctrl_.ay =  (WIN_H as float)/5000;
+            else/if key:keysym.sym == keys.left then
+                ctrl_.ax = -(WIN_W as float)/5000;
+            else/if key:keysym.sym == keys.right then
+                ctrl_.ax =  (WIN_W as float)/5000;
+            else/if key:keysym.sym == keys.fire then
+                emit ctrl_.ok_fired;
+            end
+        end
+    with
+        var _SDL_KeyboardEvent&& key;
+        every key in SDL_KEYUP do
+            if key:keysym.sym == keys.up
+            or key:keysym.sym == keys.down then
+                ctrl_.ay = 0;
+            else/if key:keysym.sym == keys.left
+                 or key:keysym.sym == keys.right then
+                ctrl_.ax = 0;
+            end
+        end
+    end
+end

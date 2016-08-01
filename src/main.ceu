@@ -13,6 +13,7 @@ var& _SDL_Renderer_ptr ren;
 watching SDL_go("Rocks!", WIN_W,WIN_H, _) => (ren)
 do
     #include "texs.ceu"
+    #include "controller.ceu"
     #include "rocks.ceu"
 
     var& SDL_Texture tex_bg, tex_ship_1, tex_ship_2, tex_rock_big, tex_tap;
@@ -68,13 +69,15 @@ do
 
                 #define DIM tex_ship_1.width
 
-                var& IController ctrl1, ctrl2;
+                // SHIP 1
+
+                var&    IController one_ctrl;
+                var&    Collideable one_coll;
+                pool[3] Fire        one_fires;
 
                 spawn Controller (
                     Keys(_SDLK_z, _SDLK_w,_SDLK_s, _SDLK_a,_SDLK_d)
-                ) => (ctrl1);
-
-                var& SDL_Rect r_ship_1, r_ship_2;
+                ) => (one_ctrl);
 
                 spawn Ship (
                     &tex_ship_1,
@@ -82,12 +85,19 @@ do
                     Orientation.Right(),
                     Limits(SDL_Point(DIM/2,         DIM/2),
                            SDL_Point(WIN_W/2-DIM/2, WIN_H-DIM/2)),
-                    &ctrl1,
-                ) => (r_ship_1);
+                    &one_ctrl,
+                    &one_fires,
+                ) => (one_coll);
+
+                // SHIP 2
+
+                var&    IController two_ctrl;
+                var&    Collideable two_coll;
+                pool[3] Fire        two_fires;
 
                 spawn Controller (
                     Keys(_SDLK_SEMICOLON, _SDLK_UP,_SDLK_DOWN, _SDLK_LEFT,_SDLK_RIGHT)
-                ) => (ctrl2);
+                ) => (two_ctrl);
 
                 spawn Ship (
                     &tex_ship_2,
@@ -95,8 +105,11 @@ do
                     Orientation.Left(),
                     Limits(SDL_Point(WIN_W/2+DIM/2, DIM/2),
                            SDL_Point(WIN_W-DIM/2,   WIN_H-DIM/2)),
-                    &ctrl2,
-                ) => (r_ship_2);
+                    &two_ctrl,
+                    &two_fires,
+                ) => (two_coll);
+
+                // ROCKS
 
                 pool[2] Rock_Big rocks;
                 par do
@@ -105,15 +118,25 @@ do
                     end
                 with
                     every SDL_DT do
-                        var& Collideable col_rock;
-                        loop (col_rock) in rocks do
-                            if _SDL_HasIntersection(&&r_ship_1      as _SDL_Rect&&,
-                                                    &&col_rock.rect as _SDL_Rect&&)
+                        var& Collideable rock_coll;
+                        loop (rock_coll) in rocks do
+                            if _SDL_HasIntersection(&&two_coll.rect  as _SDL_Rect&&,
+                                                    &&rock_coll.rect as _SDL_Rect&&)
                                 as bool
                             then
-                                emit col_rock.go;
+                                emit rock_coll.go;
                             end
 
+                            var& Collideable fire_coll;
+                            loop (fire_coll) in two_fires do
+                                if _SDL_HasIntersection(&&fire_coll.rect as _SDL_Rect&&,
+                                                        &&rock_coll.rect as _SDL_Rect&&)
+                                    as bool
+                                then
+                                    emit rock_coll.go;
+                                    emit fire_coll.go;
+                                end
+                            end
                         end
                     end
                 end
