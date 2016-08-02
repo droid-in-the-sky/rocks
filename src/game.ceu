@@ -70,7 +70,11 @@ code/tight/dynamic Has_Collided (var Object.Ship&& o1, var Object.Fire&& o2) => 
 end
 
 code/tight/dynamic Has_Collided (var Object.Fire&& o1, var Object.Rock&& o2) => bool do
-    escape call Has_Intersection(&&o1:rect, &&o2:rect);
+    var bool has = call Has_Intersection(&&o1:rect, &&o2:rect);
+    if has then
+        _Mix_PlayChannel(-1, outer.snd_rock, 0);
+    end
+    escape has;
 end
 
 #include "controller.ceu"

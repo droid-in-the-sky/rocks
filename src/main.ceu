@@ -17,8 +17,8 @@ do
     vector&[1] SDL_Texture tex_nums;
     spawn Texs() => (tex_bg, tex_ship_1, tex_ship_2, tex_rock_big, tex_tap, tex_nums);
 
-    var& _Mix_Chunk_ptr snd_start, snd_explosion;
-    spawn Snds() => (snd_start, snd_explosion);
+    var& _Mix_Chunk_ptr snd_start, snd_explosion, snd_rock;
+    spawn Snds() => (snd_start, snd_explosion, snd_rock);
 
     par do
         every SDL_REDRAW do
