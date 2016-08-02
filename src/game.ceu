@@ -1,0 +1,160 @@
+native _ceu_dbg_assert;
+
+data Orientation is 0;
+data Orientation.Right is  1;
+data Orientation.Left  is -1;
+
+data Axis with
+    var float s;
+    var float v;
+    var float a;
+end
+
+data Movable with
+    var Axis x;
+    var Axis y;
+end
+
+data Object with
+    var SDL_Rect    rect;
+    var Orientation ori;
+    var bool        has_collided;
+end
+data Object.Ship;
+data Object.Fire;
+data Object.Rock;
+
+code/await Move (var& Object obj, var& Movable mov) => void
+do
+    loop do
+        var int dt = await SDL_DT;
+
+        mov.x.v = mov.x.v + mov.x.a*dt;
+        mov.x.s = mov.x.s + mov.x.v*dt/1000;
+        obj.rect.x = mov.x.s as int;
+
+        mov.y.v = mov.y.v + mov.y.a*dt;
+        mov.y.s = mov.y.s + mov.y.v*dt/1000;
+        obj.rect.y = mov.y.s as int;
+
+        if mov.x.s<0 or mov.x.s>WIN_W then
+            break;
+        end
+        if mov.y.s<0 or mov.y.s>WIN_H then
+            break;
+        end
+        if obj.has_collided then
+            break;
+        end
+    end
+end
+
+code/tight/dynamic Has_Collided (var Object&& o1, var Object&& o2) => bool do
+    escape false;
+end
+
+code/tight/dynamic Has_Collided (var Object.Ship&& o1, var Object.Rock&& o2) => bool do
+    escape _SDL_HasIntersection((&&o1:rect) as _SDL_Rect&&,
+                                (&&o2:rect) as _SDL_Rect&&) as bool;
+end
+
+code/tight/dynamic Has_Collided (var Object.Ship&& o1, var Object.Fire&& o2) => bool do
+    escape ((o1:ori as int) != (o2:ori as int)) and
+            (_SDL_HasIntersection((&&o1:rect) as _SDL_Rect&&,
+                                  (&&o2:rect) as _SDL_Rect&&) as bool);
+end
+
+code/tight/dynamic Has_Collided (var Object.Fire&& o1, var Object.Rock&& o2) => bool do
+    escape _SDL_HasIntersection((&&o1:rect) as _SDL_Rect&&,
+                                (&&o2:rect) as _SDL_Rect&&) as bool;
+end
+
+#include "controller.ceu"
+#include "rocks.ceu"
+#include "ship.ceu"
+
+code/await Game (var& bool one_inc, var& bool two_inc) => void
+do
+    #define DIM outer.tex_ship_1.width
+
+    // SHIP 1
+    var&    IController one_ctrl;
+    vector[10] int x1;
+    var&    Object      one_obj;
+    pool[3] Fire        one_fires;
+
+    // SHIP 2
+    var&    IController two_ctrl;
+    var&    Object      two_obj;
+    pool[3] Fire        two_fires;
+
+    spawn Controller (
+        Keys(_SDLK_z, _SDLK_w,_SDLK_s, _SDLK_a,_SDLK_d)
+    ) => (one_ctrl);
+
+    spawn Controller (
+        Keys(_SDLK_SEMICOLON, _SDLK_UP,_SDLK_DOWN, _SDLK_LEFT,_SDLK_RIGHT)
+    ) => (two_ctrl);
+
+    watching
+        Ship (
+            &outer.tex_ship_1,
+            SDL_Point(outer.tex_ship_1.width, WIN_H/2),
+            Orientation.Right(),
+            Limits(SDL_Point(DIM/2,         DIM/2),
+                   SDL_Point(WIN_W/2-DIM/2, WIN_H-DIM/2)),
+            &one_ctrl,
+            &one_fires,
+        ) => (one_obj)
+        ,
+        Ship (
+            &outer.tex_ship_2,
+            SDL_Point(WIN_W-outer.tex_ship_2.width, WIN_H/2),
+            Orientation.Left(),
+            Limits(SDL_Point(WIN_W/2+DIM/2, DIM/2),
+                   SDL_Point(WIN_W-DIM/2,   WIN_H-DIM/2)),
+            &two_ctrl,
+            &two_fires,
+        ) => (two_obj)
+    do
+        pool[2] Rock_Big rocks;
+        par do
+            every 2s do
+                spawn Rock_Big(&outer.tex_rock_big) in rocks;
+            end
+        with
+            every SDL_DT do
+                vector[10] Object&& objs = [ &&one_obj, &&two_obj ];
+
+                var& Object one;
+                loop (one) in one_fires do
+                    objs = objs..[&&one];
+                end
+
+                var& Object two;
+                loop (two) in two_fires do
+                    objs = objs..[&&two];
+                end
+
+                var& Object rock_obj;
+                loop (rock_obj) in rocks do
+                    objs = objs..[&&rock_obj];
+                end
+
+                loop i in [0 -> $objs[ do
+                    loop j in [i+1 -> $objs[ do
+                        if call Has_Collided(objs[i], objs[j]) then
+                            objs[i]:has_collided = true;
+                            objs[j]:has_collided = true;
+                        end
+                    end
+                end
+
+                one_inc = two_obj.has_collided;
+                two_inc = one_obj.has_collided;
+            end
+        end
+    end
+
+    #undef DIM
+end

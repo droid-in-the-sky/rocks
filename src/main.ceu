@@ -7,14 +7,11 @@
 #define DIM_OUT outer.tex_ship_1.width
 
 #include "snds.ceu"
-#include "objs.ceu"
 
 var& _SDL_Renderer_ptr ren;
 watching SDL_go("Rocks!", WIN_W,WIN_H, _) => (ren)
 do
     #include "texs.ceu"
-    #include "controller.ceu"
-    #include "rocks.ceu"
 
     var& SDL_Texture tex_bg, tex_ship_1, tex_ship_2, tex_rock_big, tex_tap;
     vector&[1] SDL_Texture tex_nums;
@@ -22,8 +19,6 @@ do
 
     var& _Mix_Chunk_ptr snd_start, snd_explosion;
     spawn Snds() => (snd_start, snd_explosion);
-
-    #include "ship.ceu"
 
     par do
         every SDL_REDRAW do
@@ -37,110 +32,42 @@ do
         spawn Points(SDL_Point(x,      y)) => (points1);
         spawn Points(SDL_Point(WIN_W-x,y)) => (points2);
 
-        par do
-            every 1s do
-                emit points1.inc;
-            end
-        with
-            every 2s do
-                emit points2.inc;
-            end
-        with
-            loop do
-                par/or do
-                    await 1s;
-                    await SDL_KEYDOWN;
-                with
-                    var SDL_Rect r =
-                        val SDL_Rect(WIN_W/2 - tex_tap.width/2,
-                                     WIN_H/2 - tex_tap.height/2,
-                                     tex_tap.width, tex_tap.height);
-                    loop do
-                        await 500ms;
-                        watching 500ms do
-                            every SDL_REDRAW do
-                                _SDL_RenderCopy(ren, tex_tap.ptr, null,
-                                                (&&r as _SDL_Rect&&));
-                            end
+        loop do
+            // STARTING SCREEN
+            par/or do
+                await 1s;
+                await SDL_KEYDOWN;
+            with
+                var SDL_Rect r =
+                    val SDL_Rect(WIN_W/2 - tex_tap.width/2,
+                                 WIN_H/2 - tex_tap.height/2,
+                                 tex_tap.width, tex_tap.height);
+                loop do
+                    await 500ms;
+                    watching 500ms do
+                        every SDL_REDRAW do
+                            _SDL_RenderCopy(ren, tex_tap.ptr, null,
+                                            (&&r as _SDL_Rect&&));
                         end
                     end
                 end
-                _Mix_PlayChannel(-1, snd_start, 0);
+            end
+            _Mix_PlayChannel(-1, snd_start, 0);
 
-                #define DIM tex_ship_1.width
+            // GAME SCREEN
+            do
+                var bool one_inc = false;
+                var bool two_inc = false;
 
-                // SHIP 1
+                #include "game.ceu"
+                await Game(&one_inc, &two_inc);
 
-                var&    IController one_ctrl;
-                var&    Collideable one_coll;
-                pool[3] Fire        one_fires;
-
-                spawn Controller (
-                    Keys(_SDLK_z, _SDLK_w,_SDLK_s, _SDLK_a,_SDLK_d)
-                ) => (one_ctrl);
-
-                spawn Ship (
-                    &tex_ship_1,
-                    SDL_Point(tex_ship_1.width, WIN_H/2),
-                    Orientation.Right(),
-                    Limits(SDL_Point(DIM/2,         DIM/2),
-                           SDL_Point(WIN_W/2-DIM/2, WIN_H-DIM/2)),
-                    &one_ctrl,
-                    &one_fires,
-                ) => (one_coll);
-
-                // SHIP 2
-
-                var&    IController two_ctrl;
-                var&    Collideable two_coll;
-                pool[3] Fire        two_fires;
-
-                spawn Controller (
-                    Keys(_SDLK_SEMICOLON, _SDLK_UP,_SDLK_DOWN, _SDLK_LEFT,_SDLK_RIGHT)
-                ) => (two_ctrl);
-
-                spawn Ship (
-                    &tex_ship_2,
-                    SDL_Point(WIN_W-tex_ship_2.width, WIN_H/2),
-                    Orientation.Left(),
-                    Limits(SDL_Point(WIN_W/2+DIM/2, DIM/2),
-                           SDL_Point(WIN_W-DIM/2,   WIN_H-DIM/2)),
-                    &two_ctrl,
-                    &two_fires,
-                ) => (two_coll);
-
-                // ROCKS
-
-                pool[2] Rock_Big rocks;
-                par do
-                    every 2s do
-                        spawn Rock_Big(&tex_rock_big) in rocks;
-                    end
-                with
-                    every SDL_DT do
-                        var& Collideable rock_coll;
-                        loop (rock_coll) in rocks do
-                            if _SDL_HasIntersection(&&two_coll.rect  as _SDL_Rect&&,
-                                                    &&rock_coll.rect as _SDL_Rect&&)
-                                as bool
-                            then
-                                emit rock_coll.go;
-                            end
-
-                            var& Collideable fire_coll;
-                            loop (fire_coll) in two_fires do
-                                if _SDL_HasIntersection(&&fire_coll.rect as _SDL_Rect&&,
-                                                        &&rock_coll.rect as _SDL_Rect&&)
-                                    as bool
-                                then
-                                    emit rock_coll.go;
-                                    emit fire_coll.go;
-                                end
-                            end
-                        end
-                    end
+                if one_inc then
+                    emit points1.inc;
                 end
-                #undef DIM
+                if two_inc then
+                    emit points2.inc;
+                end
             end
         end
     end

@@ -3,36 +3,32 @@ native _rand, _sqrt;
 code/await Rock_Big (
         var& SDL_Texture tex,
     ) => (
-        var& Collideable col,
+        var& Object obj_,
     ) =>void
 do
-    var SDL_Rect rect = val SDL_Rect(_,_, tex.height,tex.height);
-
-    event void ok_collided;
-    var Collideable col_ = val Collideable(&rect, &ok_collided);
-    col = &col_;
+    var Object obj = val Object.Rock(SDL_Rect(_,_, tex.height,tex.height),
+                                     Orientation(), false);
+    obj_ = &obj;
 
     var float vx = _rand()%(WIN_W/5) + 1;
     var float vy = _rand()%(WIN_H/5) + 1;
     do
-        rect.x = WIN_W/3 + _rand()%WIN_W/3;
+        obj.rect.x = WIN_W/3 + _rand()%WIN_W/3;
         if (_rand()%2) as bool then
             vx = -vx;
         end
         if (_rand()%2) as bool then
-            rect.y = 0;
+            obj.rect.y = 0;
         else
-            rect.y = WIN_H;
+            obj.rect.y = WIN_H;
             vy = -vy;
         end
     end
 
-    var Movable mov = val Movable(Axis(rect.x, vx, 0),
-                                  Axis(rect.y, vy, 0));
+    var Movable mov = val Movable(Axis(obj.rect.x, vx, 0),
+                                  Axis(obj.rect.y, vy, 0));
 
-    watching Move(&rect,&mov)
-           , ok_collided
-    do
+    watching Move(&obj,&mov) do
         var SDL_Rect clip = val SDL_Rect(0,0, tex.height,tex.height);
         par do
             var float v = _sqrt(mov.x.v*mov.x.v + mov.y.v*mov.y.v);
@@ -40,13 +36,13 @@ do
             var int dt;
             every dt in SDL_DT do
                 p = p + v*dt/1000;
-                clip.x = ((p/rect.w) as int)*rect.w % (6*rect.w);
+                clip.x = ((p/obj.rect.w) as int)*obj.rect.w % (6*obj.rect.w);
             end
         with
             every SDL_REDRAW do
-                var SDL_Rect r = val SDL_Rect(rect.x-rect.w/2,
-                                              rect.y-rect.h/2,
-                                              rect.w, rect.h);
+                var SDL_Rect r = val SDL_Rect(obj.rect.x-obj.rect.w/2,
+                                              obj.rect.y-obj.rect.h/2,
+                                              obj.rect.w, obj.rect.h);
                 _SDL_RenderCopy(outer.ren, tex.ptr, (&&clip as _SDL_Rect&&),
                                                     (&&r as _SDL_Rect&&));
             end
