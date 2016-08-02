@@ -49,24 +49,28 @@ do
     end
 end
 
+code/tight Has_Intersection (var SDL_Rect&& r1, var SDL_Rect&& r2) => bool do
+    escape r1:x+r1:w/2 >= r2:x-r2:w/2 and
+           r1:x-r1:w/2 <= r2:x+r2:w/2 and
+           r1:y+r1:h/2 >= r2:y-r2:h/2 and
+           r1:y-r1:h/2 <= r2:y+r2:h/2;
+end
+
 code/tight/dynamic Has_Collided (var Object&& o1, var Object&& o2) => bool do
     escape false;
 end
 
 code/tight/dynamic Has_Collided (var Object.Ship&& o1, var Object.Rock&& o2) => bool do
-    escape _SDL_HasIntersection((&&o1:rect) as _SDL_Rect&&,
-                                (&&o2:rect) as _SDL_Rect&&) as bool;
+    escape call Has_Intersection(&&o1:rect, &&o2:rect);
 end
 
 code/tight/dynamic Has_Collided (var Object.Ship&& o1, var Object.Fire&& o2) => bool do
     escape ((o1:ori as int) != (o2:ori as int)) and
-            (_SDL_HasIntersection((&&o1:rect) as _SDL_Rect&&,
-                                  (&&o2:rect) as _SDL_Rect&&) as bool);
+            call Has_Intersection(&&o1:rect, &&o2:rect);
 end
 
 code/tight/dynamic Has_Collided (var Object.Fire&& o1, var Object.Rock&& o2) => bool do
-    escape _SDL_HasIntersection((&&o1:rect) as _SDL_Rect&&,
-                                (&&o2:rect) as _SDL_Rect&&) as bool;
+    escape call Has_Intersection(&&o1:rect, &&o2:rect);
 end
 
 #include "controller.ceu"
@@ -119,7 +123,11 @@ do
     do
         pool[2] Rock_Big rocks;
         par do
-            every 2s do
+            var int period = 2000;
+            every (_rand() % period)ms do
+                if period > 50 then
+                    period = period - 10;
+                end
                 spawn Rock_Big(&outer.tex_rock_big) in rocks;
             end
         with
