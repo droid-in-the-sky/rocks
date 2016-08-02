@@ -1,30 +1,36 @@
+#if 0
+$ ceu --pre --pre-args="-I/data/ceu/ceu-sdl/arch/" --pre-input="src/main.ceu" --ceu --env --env-header=/data/ceu/ceu/arch/env-header.h --env-main=/data/ceu/ceu/arch/env-main.c --env-output=/tmp/x.c --cc --cc-args="-lSDL2 -lSDL2_image -lSDL2_mixer -lSDL2_ttf -lSDL2_gfx -lm -g" --cc-output=/tmp/x.exe
+#endif
+
 #include "sdl.ceu"
 #include "sdl-colors.ceu"
 
 #define WIN_W 1280
 #define WIN_H  800
 
-#define DIM_OUT outer.tex_ship_1.width
-
-#include "snds.ceu"
+/* Initialize SDL, open window, execute until SDL_QUIT */
 
 var& _SDL_Renderer_ptr ren;
 watching SDL_go("Rocks!", WIN_W,WIN_H, _) => (ren)
 do
+    /* Load textures */
     #include "texs.ceu"
-
     var& SDL_Texture tex_bg, tex_ship_1, tex_ship_2, tex_rock_big, tex_tap;
-    vector&[1] SDL_Texture tex_nums;
+    vector&[10] SDL_Texture tex_nums;
     spawn Texs() => (tex_bg, tex_ship_1, tex_ship_2, tex_rock_big, tex_tap, tex_nums);
 
+    /* Load sounds */
+    #include "snds.ceu"
     var& _Mix_Chunk_ptr snd_start, snd_explosion, snd_rock;
     spawn Snds() => (snd_start, snd_explosion, snd_rock);
 
     par do
+        /* Redraw background image */
         every SDL_REDRAW do
             _SDL_RenderCopy(ren, tex_bg.ptr, null, null);
         end
     with
+        /* Points */
         #include "points.ceu"
         var& IPoints points1, points2;
         var int x = WIN_W / 15;
@@ -33,7 +39,7 @@ do
         spawn Points(SDL_Point(WIN_W-x,y)) => (points2);
 
         loop do
-            // STARTING SCREEN
+            /* Starting screen */
             par/or do
                 await 1s;
                 await SDL_KEYDOWN;
@@ -54,7 +60,7 @@ do
             end
             _Mix_PlayChannel(-1, snd_start, 0);
 
-            // GAME SCREEN
+            /* Game screen */
             do
                 var bool one_inc = false;
                 var bool two_inc = false;
