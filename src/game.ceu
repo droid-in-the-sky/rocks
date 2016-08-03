@@ -1,5 +1,3 @@
-native _ceu_dbg_assert;
-
 data Orientation is 0;
 data Orientation.Right is  1;
 data Orientation.Left  is -1;

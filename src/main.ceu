@@ -1,9 +1,10 @@
 #if 0
-$ ceu --pre --pre-args="-I/data/ceu/ceu-sdl/arch/" --pre-input="src/main.ceu" --ceu --env --env-header=/data/ceu/ceu/arch/env-header.h --env-main=/data/ceu/ceu/arch/env-main.c --env-output=/tmp/x.c --cc --cc-args="-lSDL2 -lSDL2_image -lSDL2_mixer -lSDL2_ttf -lSDL2_gfx -lm -g" --cc-output=/tmp/x.exe
+$ ceu --pre --pre-args="-I/data/ceu/ceu/include -I/data/ceu/ceu-sdl/include" --pre-input="src/main.ceu" --ceu --env --env-header=/data/ceu/ceu/env/header.h --env-main=/data/ceu/ceu/env/main.c --env-output=/tmp/x.c --cc --cc-args="-lSDL2 -lSDL2_image -lSDL2_mixer -lSDL2_ttf -lSDL2_gfx -lm -g" --cc-output=/tmp/x.exe
 #endif
 
-#include "sdl.ceu"
-#include "sdl-colors.ceu"
+#include "c.ceu"
+#include "sdl/sdl.ceu"
+#include "sdl/colors.ceu"
 
 #define WIN_W 1280
 #define WIN_H  800

@@ -1,5 +1,3 @@
-native _rand, _sqrt;
-
 code/await Rock_Big (
         var& SDL_Texture tex,
     ) => (
