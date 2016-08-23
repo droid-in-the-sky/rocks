@@ -11,7 +11,7 @@ $ ceu --pre --pre-args="-I/data/ceu/ceu/include -I/data/ceu/ceu-sdl/include" --p
 
 /* Initialize SDL, open window, execute until SDL_QUIT */
 
-var& _SDL_Renderer_ptr ren;
+var& _SDL_Renderer ren;
 watching SDL_go("Rocks!", WIN_W,WIN_H, _) => (ren)
 do
     /* Load textures */
@@ -22,13 +22,13 @@ do
 
     /* Load sounds */
     #include "snds.ceu"
-    var& _Mix_Chunk_ptr snd_start, snd_explosion, snd_rock;
+    var& _Mix_Chunk snd_start, snd_explosion, snd_rock;
     spawn Snds() => (snd_start, snd_explosion, snd_rock);
 
     par do
         /* Redraw background image */
         every SDL_REDRAW do
-            _SDL_RenderCopy(ren, tex_bg.ptr, null, null);
+            _SDL_RenderCopy(&&ren, &&tex_bg.tex, null, null);
         end
     with
         /* Points */
@@ -53,13 +53,13 @@ do
                     await 500ms;
                     watching 500ms do
                         every SDL_REDRAW do
-                            _SDL_RenderCopy(ren, tex_tap.ptr, null,
+                            _SDL_RenderCopy(&&ren, &&tex_tap.tex, null,
                                             (&&r as _SDL_Rect&&));
                         end
                     end
                 end
             end
-            _Mix_PlayChannel(-1, snd_start, 0);
+            _Mix_PlayChannel(-1, &&snd_start, 0);
 
             /* Game screen */
             do

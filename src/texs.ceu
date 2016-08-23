@@ -7,11 +7,11 @@ code/await Texs (void)
                         var&        SDL_Texture rock_big,
                         var&        SDL_Texture tap,
                         vector&[10] SDL_Texture nums)
-                        => void
+                        => FOREVER
 do
     var& SDL_Texture bg_, ship_1_, ship_2_, rock_big_, tap_;
 
-    var& _TTF_Font_ptr font_big;
+    var& _TTF_Font font_big;
     var& SDL_Texture num_0, num_1, num_2, num_3, num_4,
                      num_5, num_6, num_7, num_8, num_9;
 

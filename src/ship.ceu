@@ -19,9 +19,9 @@ do
 
     watching Move(&obj, &mov) do
         every SDL_REDRAW do
-            _boxRGBA(outer.ren, obj.rect.x,obj.rect.y,
-                                obj.rect.x+obj.rect.w,obj.rect.y+obj.rect.h,
-                                0xFF,0xFF,0x88,0xFF);
+            _boxRGBA(&&outer.ren, obj.rect.x,obj.rect.y,
+                                  obj.rect.x+obj.rect.w,obj.rect.y+obj.rect.h,
+                                  0xFF,0xFF,0x88,0xFF);
         end
     end
 end
@@ -32,12 +32,12 @@ data Limits with
 end
 
 code/await Ship (
-        var&    SDL_Texture tex,
-        var     SDL_Point   pos,
-        var     Orientation ori,
-        var     Limits      lim,
-        var&    IController ctrl,
-        pool&[] Fire        fires,
+        var&     SDL_Texture tex,
+        var      SDL_Point   pos,
+        var      Orientation ori,
+        var      Limits      lim,
+        var&     IController ctrl,
+        pool&[3] Fire        fires,
     ) => (
         var& Object obj_,
     ) => void
@@ -104,14 +104,14 @@ do
                 // redraw sprite frame
                 var SDL_Rect r = val SDL_Rect(obj.rect.x-DIM/2, obj.rect.y-DIM/2,
                                               DIM,DIM);
-                _SDL_RenderCopy(outer.ren, tex.ptr, (&&clip as _SDL_Rect&&),
-                                                    (&&r as _SDL_Rect&&));
+                _SDL_RenderCopy(&&outer.ren, &&tex.tex, (&&clip as _SDL_Rect&&),
+                                                        (&&r as _SDL_Rect&&));
             end
         end
     end
 
     // explode 40w/s
-    _Mix_PlayChannel(-1, outer.snd_explosion, 0);
+    _Mix_PlayChannel(-1, &&outer.snd_explosion, 0);
     watching 100ms do
         par do
             var float d = DIM;
@@ -124,8 +124,8 @@ do
             end
         with
             every SDL_REDRAW do
-                _filledCircleRGBA(outer.ren, obj.rect.x,obj.rect.y,obj.rect.w,
-                                             0xFF,0x00,0x00,0xFF);
+                _filledCircleRGBA(&&outer.ren, obj.rect.x,obj.rect.y,obj.rect.w,
+                                               0xFF,0x00,0x00,0xFF);
             end
         end
     end

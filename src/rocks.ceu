@@ -41,8 +41,8 @@ do
                 var SDL_Rect r = val SDL_Rect(obj.rect.x-obj.rect.w/2,
                                               obj.rect.y-obj.rect.h/2,
                                               obj.rect.w, obj.rect.h);
-                _SDL_RenderCopy(outer.ren, tex.ptr, (&&clip as _SDL_Rect&&),
-                                                    (&&r as _SDL_Rect&&));
+                _SDL_RenderCopy(&&outer.ren, &&tex.tex, (&&clip as _SDL_Rect&&),
+                                                        (&&r as _SDL_Rect&&));
             end
         end
     end

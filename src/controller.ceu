@@ -8,7 +8,7 @@ data Keys with
     var int up, down, left, right;
 end
 
-code/await Controller (var Keys keys) => (var& IController ctrl) => void
+code/await Controller (var Keys keys) => (var& IController ctrl) => FOREVER
 do
     var IController ctrl_ = val IController(_,0,0);
     ctrl = &ctrl_;

@@ -54,23 +54,23 @@ code/tight Has_Intersection (var SDL_Rect&& r1, var SDL_Rect&& r2) => bool do
            r1:y-r1:h/2 <= r2:y+r2:h/2;
 end
 
-code/tight/dynamic Has_Collided (var Object&& o1, var Object&& o2) => bool do
+code/tight/dynamic Has_Collided (dynamic var Object&& o1, dynamic var Object&& o2) => bool do
     escape false;
 end
 
-code/tight/dynamic Has_Collided (var Object.Ship&& o1, var Object.Rock&& o2) => bool do
+code/tight/dynamic Has_Collided (dynamic var Object.Ship&& o1, dynamic var Object.Rock&& o2) => bool do
     escape call Has_Intersection(&&o1:rect, &&o2:rect);
 end
 
-code/tight/dynamic Has_Collided (var Object.Ship&& o1, var Object.Fire&& o2) => bool do
+code/tight/dynamic Has_Collided (dynamic var Object.Ship&& o1, dynamic var Object.Fire&& o2) => bool do
     escape ((o1:ori as int) != (o2:ori as int)) and
             call Has_Intersection(&&o1:rect, &&o2:rect);
 end
 
-code/tight/dynamic Has_Collided (var Object.Fire&& o1, var Object.Rock&& o2) => bool do
+code/tight/dynamic Has_Collided (dynamic var Object.Fire&& o1, dynamic var Object.Rock&& o2) => bool do
     var bool has = call Has_Intersection(&&o1:rect, &&o2:rect);
     if has then
-        _Mix_PlayChannel(-1, outer.snd_rock, 0);
+        _Mix_PlayChannel(-1, &&outer.snd_rock, 0);
     end
     escape has;
 end
@@ -153,7 +153,7 @@ do
 
                 loop i in [0 -> $objs[ do
                     loop j in [i+1 -> $objs[ do
-                        if call Has_Collided(objs[i], objs[j]) then
+                        if call/dynamic Has_Collided(objs[i], objs[j]) then
                             objs[i]:has_collided = true;
                             objs[j]:has_collided = true;
                         end

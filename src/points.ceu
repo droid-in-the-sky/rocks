@@ -3,7 +3,7 @@ data IPoints with
     var   int  cur;
 end
 
-code/await Points (var SDL_Point pos) => (var& IPoints me) => void do
+code/await Points (var SDL_Point pos) => (var& IPoints me) => FOREVER do
     var IPoints me_ = val IPoints(_,0);
     me = &me_;
 
@@ -23,15 +23,15 @@ code/await Points (var SDL_Point pos) => (var& IPoints me) => void do
     with
         every SDL_REDRAW do
             var SDL_Rect r = rect;
-            _SDL_RenderCopy(outer.ren, outer.tex_nums[v0].ptr,
+            _SDL_RenderCopy(&&outer.ren, &&outer.tex_nums[v0].tex,
                             null, (&&r as _SDL_Rect&&));
             if me_.cur >= 10 then
                 r.x = r.x - r.w;
-                _SDL_RenderCopy(outer.ren, outer.tex_nums[v1].ptr,
+                _SDL_RenderCopy(&&outer.ren, &&outer.tex_nums[v1].tex,
                                 null, (&&r as _SDL_Rect&&));
                 if me_.cur >= 100 then
                     r.x = r.x - r.w;
-                    _SDL_RenderCopy(outer.ren, outer.tex_nums[v2].ptr,
+                    _SDL_RenderCopy(&&outer.ren, &&outer.tex_nums[v2].tex,
                                     null, (&&r as _SDL_Rect&&));
                 end
             end
